@@ -107,7 +107,7 @@ void setup() {
   config.xclk_freq_hz = 20000000;
 
   // Set frame config
-  config.frame_size = FRAMESIZE_VGA;
+  config.frame_size = FRAMESIZE_HVGA;
   config.pixel_format = PIXFORMAT_GRAYSCALE; // Required for AprilTag processing
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
   config.fb_location = CAMERA_FB_IN_PSRAM;
@@ -177,8 +177,13 @@ void setup() {
   apriltag_detector_add_family(td, tf);
   
   // Tag detector configs
-  td->quad_sigma = 0.0;
-  td->quad_decimate = 1.0;
+  // quad_sigma is Gaussian blur's sigma
+  // quad_decimate: small number = faster but cannot detect small tags
+  //                big number = slower but can detect small tags (or tag far away)
+  // With quad_sigma = 1.0 and quad_decimate = 4.0, ESP32-CAM can detect 16h5 tag
+  // from the distance of about 1 meter (tested with tag on screen. not on paper)
+  td->quad_sigma = 1.0;
+  td->quad_decimate = 4.0;
   td->refine_edges = 0;
   td->decode_sharpening = 0;
   td->nthreads = 1;
