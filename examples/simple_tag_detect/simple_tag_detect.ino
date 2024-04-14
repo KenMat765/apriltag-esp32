@@ -5,6 +5,11 @@
  * with some modifications (for adaption and performance)
  */
 
+// Define CAP_TO_SD to log image to SD card (for debugging)
+// This will output raw 1bpp files and then you can use
+// raw2img.py to convert it to readable format.
+//#define CAP_TO_SD
+
 //
 // WARNING!!! PSRAM IC required for UXGA resolution and high JPEG quality
 //            Ensure ESP32 Wrover Module or other board with PSRAM is selected
@@ -38,6 +43,11 @@
 // Hardware-specific headers
 #include "esp_camera.h"
 #include "camera_pins.h"
+
+#ifdef CAP_TO_SD
+#include "SD_MMC.h"
+#include "FS.h"
+#endif
 
 // Apriltag headers
 // We choose 25h9 family to use in this demo, but 16h5 family also
@@ -182,6 +192,58 @@ void setup() {
   Serial.println(ESP.getFreePsram());
 #endif
 
+  // Init SD card if needed
+#ifdef CAP_TO_SD
+#if DEBUG >= 1
+  Serial.print("Init SD card... ");
+
+  // Turns off the ESP32-CAM white on-board LED (flash) connected to GPIO 4
+  pinMode(4, OUTPUT);
+  digitalWrite(4, LOW);
+#endif
+
+  // Mount SD card
+  if (SD_MMC.begin()) {
+#if DEBUG >= 1
+    Serial.println("done");
+#endif
+  } else {
+#if DEBUG >= 1
+    Serial.println("failed. SD card capture will be disabled!");
+#endif
+  }
+
+  // FS object
+  fs::FS &fs = SD_MMC;
+
+  // Create "apriltag_detection" directory (if it has not yet existed)
+  fs.mkdir("/apriltag_detection");
+
+  // Determine the current run ID by looking into apriltag_detection directory
+  // and find the directory with the largest number. Our ID will be that + 1
+  String run_id = "0";
+  File apriltag_detection_dir = fs.open("/apriltag_detection");
+  File run_dir;
+  while (run_dir = apriltag_detection_dir.openNextFile()) {
+    if (run_dir.isDirectory()) {
+      run_id = run_dir.name();
+    }
+  }
+
+  // Create new directory
+  run_id = "/apriltag_detection/" + String(run_id.toInt() + 1);
+  fs.mkdir(run_id.c_str());
+
+#if DEBUG >= 1
+  Serial.print("Images will be saved to ");
+  Serial.print(run_id);
+  Serial.println("/");
+#endif
+
+  // Image id counter
+  uint32_t frame_id = 0;
+#endif
+
   // Setup AprilTag detection
 #if DEBUG >= 1
   Serial.print("Init AprilTag detector... ");
@@ -228,9 +290,38 @@ void setup() {
       continue;
     }
 
+  // Capture frame to SD card
+#ifdef CAP_TO_SD
+    String img_path = run_id + "/" + String(frame_id) + ".raw";
+
+#if DEBUG >= 3
+    Serial.print("Saving frame to ");
+    Serial.print(img_path);
+    Serial.print("... ");
+#endif
+
+    // Open file
+    File frame_f = fs.open(img_path.c_str(), FILE_WRITE);
+
+    if (!frame_f) {
+#if DEBUG >= 3
+      Serial.println("Failed to open file in writing mode");
+#endif
+    } else {
+      frame_f.write(fb->buf, fb->len); // payload (image), payload length
+#if DEBUG >= 3
+      Serial.println("done");
+#endif
+    }
+
+    // Close and increase frame_id
+    frame_f.close();
+    frame_id++;
+#endif
+
     // Convert our framebuffer to detector's input format
 #if DEBUG >= 3
-    Serial.println("Got a frame, converting it to detector's input format... ");
+    Serial.println("Converting frame to detector's input format... ");
 #endif
     image_u8_t im = {
       .width = fb->width,
@@ -272,11 +363,16 @@ void setup() {
     esp_camera_fb_return(fb);
 
     // Display time needed per frame
+    // And frame count (if CAP_TO_SD defined)
     float t =  timeprofile_total_utime(td->tp) / 1.0E3;
+#ifdef CAP_TO_SD
+    Serial.printf("t, id: %12.3f, %zu\n", t, frame_id);
+#else
     Serial.printf("t: %12.3f\n", t);
+#endif
   }
 }
 
 void loop() {
-  // Nothing here, the real loop is already at the end of setup())
+  // Nothing here, the real loop is already at the end of setup()
 }
