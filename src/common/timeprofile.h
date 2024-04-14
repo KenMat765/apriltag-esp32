@@ -93,9 +93,9 @@ static inline void timeprofile_display(timeprofile_t *tp)
 
         zarray_get_volatile(tp->stamps, i, &stamp);
 
-        double cumtime = (stamp->utime - tp->utime)/1000000.0;
+        float cumtime = (stamp->utime - tp->utime)/1000000.0;
 
-        double parttime = (stamp->utime - lastutime)/1000000.0;
+        float parttime = (stamp->utime - lastutime)/1000000.0;
 
         printf("%2d %32s %15f ms %15f ms\n", i, stamp->name, parttime*1000, cumtime*1000);
 

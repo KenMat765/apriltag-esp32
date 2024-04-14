@@ -140,7 +140,7 @@ struct remove_vertex
     int i;           // which vertex to remove?
     int left, right; // left vertex, right vertex
 
-    double err;
+    float err;
 };
 
 struct segment
@@ -154,9 +154,9 @@ struct segment
 
 struct line_fit_pt
 {
-    double Mx, My;
-    double Mxx, Myy, Mxy;
-    double W; // total weight
+    float Mx, My;
+    float Mxx, Myy, Mxy;
+    float W; // total weight
 };
 
 struct cluster_hash
@@ -172,12 +172,12 @@ struct cluster_hash
 //
 // fit a line to the points [i0, i1] (inclusive). i0, i1 are both [0,
 // sz) if i1 < i0, we treat this as a wrap around.
-void fit_line(struct line_fit_pt *lfps, int sz, int i0, int i1, double *lineparm, double *err, double *mse)
+void fit_line(struct line_fit_pt *lfps, int sz, int i0, int i1, float *lineparm, float *err, float *mse)
 {
     assert(i0 != i1);
     assert(i0 >= 0 && i1 >= 0 && i0 < sz && i1 < sz);
 
-    double Mx, My, Mxx, Myy, Mxy, W;
+    float Mx, My, Mxx, Myy, Mxy, W;
     int N; // how many points are included in the set?
 
     if (i0 < i1) {
@@ -222,39 +222,39 @@ void fit_line(struct line_fit_pt *lfps, int sz, int i0, int i1, double *lineparm
 
     assert(N >= 2);
 
-    double Ex = Mx / W;
-    double Ey = My / W;
-    double Cxx = Mxx / W - Ex*Ex;
-    double Cxy = Mxy / W - Ex*Ey;
-    double Cyy = Myy / W - Ey*Ey;
+    float Ex = Mx / W;
+    float Ey = My / W;
+    float Cxx = Mxx / W - Ex*Ex;
+    float Cxy = Mxy / W - Ex*Ey;
+    float Cyy = Myy / W - Ey*Ey;
 
     //if (1) {
     //    // on iOS about 5% of total CPU spent in these trig functions.
     //    // 85 ms per frame on 5S, example.pnm
     //    //
-    //    // XXX this was using the double-precision atan2. Was there a case where
+    //    // XXX this was using the float-precision atan2. Was there a case where
     //    // we needed that precision? Seems doubtful.
-    //    double normal_theta = .5 * atan2f(-2*Cxy, (Cyy - Cxx));
+    //    float normal_theta = .5 * atan2f(-2*Cxy, (Cyy - Cxx));
     //    nx_old = cosf(normal_theta);
     //    ny_old = sinf(normal_theta);
     //}
 
     // Instead of using the above cos/sin method, pose it as an eigenvalue problem.
-    double eig_small = 0.5*(Cxx + Cyy - sqrtf((Cxx - Cyy)*(Cxx - Cyy) + 4*Cxy*Cxy));
+    float eig_small = 0.5*(Cxx + Cyy - sqrtf((Cxx - Cyy)*(Cxx - Cyy) + 4*Cxy*Cxy));
 
     if (lineparm) {
         lineparm[0] = Ex;
         lineparm[1] = Ey;
 
-        double eig = 0.5*(Cxx + Cyy + sqrtf((Cxx - Cyy)*(Cxx - Cyy) + 4*Cxy*Cxy));
-        double nx1 = Cxx - eig;
-        double ny1 = Cxy;
-        double M1 = nx1*nx1 + ny1*ny1;
-        double nx2 = Cxy;
-        double ny2 = Cyy - eig;
-        double M2 = nx2*nx2 + ny2*ny2;
+        float eig = 0.5*(Cxx + Cyy + sqrtf((Cxx - Cyy)*(Cxx - Cyy) + 4*Cxy*Cxy));
+        float nx1 = Cxx - eig;
+        float ny1 = Cxy;
+        float M1 = nx1*nx1 + ny1*ny1;
+        float nx2 = Cxy;
+        float ny2 = Cyy - eig;
+        float M2 = nx2*nx2 + ny2*ny2;
 
-        double nx, ny, M;
+        float nx, ny, M;
         if (M1 > M2) {
             nx = nx1;
             ny = ny1;
@@ -265,7 +265,7 @@ void fit_line(struct line_fit_pt *lfps, int sz, int i0, int i1, double *lineparm
             M = M2;
         }
 
-        double length = sqrtf(M);
+        float length = sqrtf(M);
         if (fabs(length) < 1e-12) {
             lineparm[2] = lineparm[3] = 0;
         }
@@ -298,8 +298,8 @@ float pt_compare_angle(struct pt *a, struct pt *b) {
 
 int err_compare_descending(const void *_a, const void *_b)
 {
-    const double *a =  _a;
-    const double *b =  _b;
+    const float *a =  _a;
+    const float *b =  _b;
 
     return ((*a) < (*b)) ? 1 : -1;
 }
@@ -341,7 +341,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
     if (ksz < 2)
         return 0;
 
-    double *errs = malloc(sizeof(double)*sz);
+    float *errs = malloc(sizeof(float)*sz);
 
     for (int i = 0; i < sz; i++) {
         fit_line(lfps, sz, (i + sz - ksz) % sz, (i + ksz) % sz, NULL, &errs[i], NULL);
@@ -349,12 +349,12 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
 
     // apply a low-pass filter to errs
     if (1) {
-        double *y = malloc(sizeof(double)*sz);
+        float *y = malloc(sizeof(float)*sz);
 
         // how much filter to apply?
 
         // XXX Tunable
-        double sigma = 1; // was 3
+        float sigma = 1; // was 3
 
         // cutoff = exp(-j*j/(2*sigma*sigma));
         // log(cutoff) = -j*j / (2*sigma*sigma)
@@ -365,7 +365,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
         // 'cutoff'.
 
         // XXX Tunable (though not super useful to change)
-        double cutoff = 0.05;
+        float cutoff = 0.05;
         int fsz = sqrt(-log(cutoff)*2*sigma*sigma) + 1;
         fsz = 2*fsz + 1;
 
@@ -379,7 +379,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
         }
 
         for (int iy = 0; iy < sz; iy++) {
-            double acc = 0;
+            float acc = 0;
 
             for (int i = 0; i < fsz; i++) {
                 acc += errs[(iy + i - fsz / 2 + sz) % sz] * f[i];
@@ -387,13 +387,13 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
             y[iy] = acc;
         }
 
-        memcpy(errs, y, sizeof(double)*sz);
+        memcpy(errs, y, sizeof(float)*sz);
         free(y);
         free(f);
     }
 
     int *maxima = malloc(sizeof(int)*sz);
-    double *maxima_errs = malloc(sizeof(double)*sz);
+    float *maxima_errs = malloc(sizeof(float)*sz);
     int nmaxima = 0;
 
     for (int i = 0; i < sz; i++) {
@@ -416,13 +416,13 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
     int max_nmaxima = td->qtp.max_nmaxima;
 
     if (nmaxima > max_nmaxima) {
-        double *maxima_errs_copy = malloc(sizeof(double)*nmaxima);
-        memcpy(maxima_errs_copy, maxima_errs, sizeof(double)*nmaxima);
+        float *maxima_errs_copy = malloc(sizeof(float)*nmaxima);
+        memcpy(maxima_errs_copy, maxima_errs, sizeof(float)*nmaxima);
 
         // throw out all but the best handful of maxima. Sorts descending.
-        qsort(maxima_errs_copy, nmaxima, sizeof(double), err_compare_descending);
+        qsort(maxima_errs_copy, nmaxima, sizeof(float), err_compare_descending);
 
-        double maxima_thresh = maxima_errs_copy[max_nmaxima];
+        float maxima_thresh = maxima_errs_copy[max_nmaxima];
         int out = 0;
         for (int in = 0; in < nmaxima; in++) {
             if (maxima_errs[in] <= maxima_thresh)
@@ -435,14 +435,14 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
     free(maxima_errs);
 
     int best_indices[4];
-    double best_error = HUGE_VALF;
+    float best_error = HUGE_VALF;
 
-    double err01, err12, err23, err30;
-    double mse01, mse12, mse23, mse30;
-    double params01[4], params12[4];
+    float err01, err12, err23, err30;
+    float mse01, mse12, mse23, mse30;
+    float params01[4], params12[4];
 
     // disallow quads where the angle is less than a critical value.
-    double max_dot = td->qtp.cos_critical_rad; //25*M_PI/180);
+    float max_dot = td->qtp.cos_critical_rad; //25*M_PI/180);
 
     for (int m0 = 0; m0 < nmaxima - 3; m0++) {
         int i0 = maxima[m0];
@@ -462,7 +462,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
                 if (mse12 > td->qtp.max_line_fit_mse)
                     continue;
 
-                double dot = params01[2]*params12[2] + params01[3]*params12[3];
+                float dot = params01[2]*params12[2] + params01[3]*params12[3];
                 if (fabs(dot) > max_dot)
                     continue;
 
@@ -477,7 +477,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
                     if (mse30 > td->qtp.max_line_fit_mse)
                         continue;
 
-                    double err = err01 + err12 + err23 + err30;
+                    float err = err01 + err12 + err23 + err30;
                     if (err < best_error) {
                         best_error = err;
                         best_indices[0] = i0;
@@ -631,11 +631,11 @@ struct line_fit_pt* compute_lfps(int sz, zarray_t* cluster, image_u8_t* im) {
 
         {
             // we now undo our fixed-point arithmetic.
-            double delta = 0.5; // adjust for pixel center bias
-            double x = p->x * .5 + delta;
-            double y = p->y * .5 + delta;
+            float delta = 0.5; // adjust for pixel center bias
+            float x = p->x * .5 + delta;
+            float y = p->y * .5 + delta;
             int ix = x, iy = y;
-            double W = 1;
+            float W = 1;
 
             if (ix > 0 && ix+1 < im->width && iy > 0 && iy+1 < im->height) {
                 int grad_x = im->buf[iy * im->stride + ix + 1] -
@@ -648,7 +648,7 @@ struct line_fit_pt* compute_lfps(int sz, zarray_t* cluster, image_u8_t* im) {
                 W = sqrt(grad_x*grad_x + grad_y*grad_y) + 1;
             }
 
-            double fx = x, fy = y;
+            float fx = x, fy = y;
             lfps[i].Mx  += W * fx;
             lfps[i].My  += W * fy;
             lfps[i].Mxx += W * fx * fx;
@@ -865,13 +865,13 @@ int fit_quad(
     }
 
 
-    double lines[4][4];
+    float lines[4][4];
 
     for (int i = 0; i < 4; i++) {
         int i0 = indices[i];
         int i1 = indices[(i+1)&3];
 
-        double mse;
+        float mse;
         fit_line(lfps, sz, i0, i1, lines[i], NULL, &mse);
 
         if (mse > td->qtp.max_line_fit_mse) {
@@ -896,22 +896,22 @@ int fit_quad(
         // We want the unit vector, so we need the perpendiculars. Thus, below
         // we have swapped the x and y components and flipped the y components.
 
-        double A00 =  lines[i][3],  A01 = -lines[(i+1)&3][3];
-        double A10 =  -lines[i][2],  A11 = lines[(i+1)&3][2];
-        double B0 = -lines[i][0] + lines[(i+1)&3][0];
-        double B1 = -lines[i][1] + lines[(i+1)&3][1];
+        float A00 =  lines[i][3],  A01 = -lines[(i+1)&3][3];
+        float A10 =  -lines[i][2],  A11 = lines[(i+1)&3][2];
+        float B0 = -lines[i][0] + lines[(i+1)&3][0];
+        float B1 = -lines[i][1] + lines[(i+1)&3][1];
 
-        double det = A00 * A11 - A10 * A01;
+        float det = A00 * A11 - A10 * A01;
 
         // inverse.
         if (fabs(det) < 0.001) {
             res = 0;
             goto finish;
         }
-        double W00 = A11 / det, W01 = -A01 / det;
+        float W00 = A11 / det, W01 = -A01 / det;
 
         // solve
-        double L0 = W00*B0 + W01*B1;
+        float L0 = W00*B0 + W01*B1;
 
         // compute intersection
         quad->p[i][0] = lines[i][0] + L0*A00;
@@ -922,10 +922,10 @@ int fit_quad(
 
     // reject quads that are too small
     if (1) {
-        double area = 0;
+        float area = 0;
 
         // get area of triangle formed by points 0, 1, 2, 0
-        double length[3], p;
+        float length[3], p;
         for (int i = 0; i < 3; i++) {
             int idxa = i; // 0, 1, 2,
             int idxb = (i+1) % 3; // 1, 2, 0
@@ -959,11 +959,11 @@ int fit_quad(
         for (int i = 0; i < 4; i++) {
             int i0 = i, i1 = (i+1)&3, i2 = (i+2)&3;
 
-            double dx1 = quad->p[i1][0] - quad->p[i0][0];
-            double dy1 = quad->p[i1][1] - quad->p[i0][1];
-            double dx2 = quad->p[i2][0] - quad->p[i1][0];
-            double dy2 = quad->p[i2][1] - quad->p[i1][1];
-            double cos_dtheta = (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2));
+            float dx1 = quad->p[i1][0] - quad->p[i0][0];
+            float dy1 = quad->p[i1][1] - quad->p[i0][1];
+            float dx2 = quad->p[i2][0] - quad->p[i1][0];
+            float dy2 = quad->p[i2][1] - quad->p[i1][1];
+            float cos_dtheta = (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2));
 
             if ((cos_dtheta > td->qtp.cos_critical_rad || cos_dtheta < -td->qtp.cos_critical_rad) || dx1*dy2 < dy1*dx2) {
                 res = 0;
@@ -1955,7 +1955,7 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
         image_u8_darken(im2);
 
         // assume letter, which is 612x792 points.
-        double scale = fmin(612.0/im->width, 792.0/im2->height);
+        float scale = fmin(612.0/im->width, 792.0/im2->height);
         fprintf(f, "%.15f %.15f scale\n", scale, scale);
         fprintf(f, "0 %d translate\n", im2->height);
         fprintf(f, "1 -1 scale\n");

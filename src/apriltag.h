@@ -158,7 +158,7 @@ struct apriltag_detector
     // lighting conditions or low light conditions.
     //
     // The default value is 0.25.
-    double decode_sharpening;
+    float decode_sharpening;
 
     // When true, write a variety of debugging images to the
     // current working directory at various stages through the
@@ -223,11 +223,11 @@ struct apriltag_detection
     matd_t *H;
 
     // The center of the detection in image pixel coordinates.
-    double c[2];
+    float c[2];
 
     // The corners of the tag in image pixel coordinates. These always
     // wrap counter-clock wise around the tag.
-    double p[4][2];
+    float p[4][2];
 };
 
 // don't forget to add a family!

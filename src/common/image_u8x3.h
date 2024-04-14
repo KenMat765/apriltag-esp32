@@ -50,7 +50,7 @@ image_u8x3_t *image_u8x3_create_from_pnm(const char *path);
 
 image_u8x3_t *image_u8x3_copy(const image_u8x3_t *in);
 
-void image_u8x3_gaussian_blur(image_u8x3_t *im, double sigma, int ksz);
+void image_u8x3_gaussian_blur(image_u8x3_t *im, float sigma, int ksz);
 
 void image_u8x3_destroy(image_u8x3_t *im);
 

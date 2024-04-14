@@ -69,14 +69,14 @@ void    utime_to_timespec(int64_t v, struct timespec *ts);
 
 int32_t  timeutil_usleep(int64_t useconds);
 uint32_t timeutil_sleep(unsigned int seconds);
-int32_t  timeutil_sleep_hz(timeutil_rest_t *rest, double hz);
+int32_t  timeutil_sleep_hz(timeutil_rest_t *rest, float hz);
 
 void timeutil_timer_reset(timeutil_rest_t *rest);
 void timeutil_timer_start(timeutil_rest_t *rest);
 void timeutil_timer_stop(timeutil_rest_t *rest);
-bool timeutil_timer_timeout(timeutil_rest_t *rest, double timeout_s);
+bool timeutil_timer_timeout(timeutil_rest_t *rest, float timeout_s);
 
-int64_t time_util_hhmmss_ss_to_utime(double time);
+int64_t time_util_hhmmss_ss_to_utime(float time);
 
 int64_t timeutil_ms_to_us(int32_t ms);
 

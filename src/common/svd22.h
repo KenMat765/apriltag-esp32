@@ -27,8 +27,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #pragma once
 
-void svd22(const double A[4], double U[4], double S[2], double V[4]);
+void svd22(const float A[4], float U[4], float S[2], float V[4]);
 
 // for the matrix [a b; b d]
-void svd_sym_singular_values(double A00, double A01, double A11,
-                             double *Lmin, double *Lmax);
+void svd_sym_singular_values(float A00, float A01, float A11,
+                             float *Lmin, float *Lmax);

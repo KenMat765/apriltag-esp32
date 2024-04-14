@@ -39,7 +39,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 // https://www.w3.org/Graphics/JPEG/itu-t81.pdf
 
-void pjpeg_idct_2D_double(int32_t in[64], uint8_t *out, uint32_t outstride);
+void pjpeg_idct_2D_float(int32_t in[64], uint8_t *out, uint32_t outstride);
 void pjpeg_idct_2D_u32(int32_t in[64], uint8_t *out, uint32_t outstride);
 void pjpeg_idct_2D_nanojpeg(int32_t in[64], uint8_t *out, uint32_t outstride);
 
@@ -715,7 +715,7 @@ image_u8_t *pjpeg_to_u8_baseline(pjpeg_t *pj)
     return im;
 }
 
-static inline uint8_t clampd(double v)
+static inline uint8_t clampd(float v)
 {
     if (v < 0)
         return 0;

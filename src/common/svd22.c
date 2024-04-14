@@ -30,7 +30,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 /** SVD 2x2.
 
     Computes singular values and vectors without squaring the input
-    matrix. With double precision math, results are accurate to about
+    matrix. With float precision math, results are accurate to about
     1E-16.
 
     U = [ cos(theta) -sin(theta) ]
@@ -85,26 +85,26 @@ B3/B0 = tan(P-T)
 
 B2/B1 = tan(P+T)
  **/
-void svd22(const double A[4], double U[4], double S[2], double V[4])
+void svd22(const float A[4], float U[4], float S[2], float V[4])
 {
-    double A00 = A[0];
-    double A01 = A[1];
-    double A10 = A[2];
-    double A11 = A[3];
+    float A00 = A[0];
+    float A01 = A[1];
+    float A10 = A[2];
+    float A11 = A[3];
 
-    double B0 = A00 + A11;
-    double B1 = A00 - A11;
-    double B2 = A01 + A10;
-    double B3 = A01 - A10;
+    float B0 = A00 + A11;
+    float B1 = A00 - A11;
+    float B2 = A01 + A10;
+    float B3 = A01 - A10;
 
-    double PminusT = atan2(B3, B0);
-    double PplusT = atan2(B2, B1);
+    float PminusT = atan2(B3, B0);
+    float PplusT = atan2(B2, B1);
 
-    double P = (PminusT + PplusT) / 2;
-    double T = (-PminusT + PplusT) / 2;
+    float P = (PminusT + PplusT) / 2;
+    float T = (-PminusT + PplusT) / 2;
 
-    double CP = cos(P), SP = sin(P);
-    double CT = cos(T), ST = sin(T);
+    float CP = cos(P), SP = sin(P);
+    float CT = cos(T), ST = sin(T);
 
     U[0] = CT;
     U[1] = -ST;
@@ -118,8 +118,8 @@ void svd22(const double A[4], double U[4], double S[2], double V[4])
 
     // C0 = e+f. There are two ways to compute C0; we pick the one
     // that is better conditioned.
-    double CPmT = cos(P-T), SPmT = sin(P-T);
-    double C0 = 0;
+    float CPmT = cos(P-T), SPmT = sin(P-T);
+    float C0 = 0;
     if (fabs(CPmT) > fabs(SPmT))
         C0 = B0 / CPmT;
     else
@@ -127,16 +127,16 @@ void svd22(const double A[4], double U[4], double S[2], double V[4])
 
     // C1 = e-f. There are two ways to compute C1; we pick the one
     // that is better conditioned.
-    double CPpT = cos(P+T), SPpT = sin(P+T);
-    double C1 = 0;
+    float CPpT = cos(P+T), SPpT = sin(P+T);
+    float C1 = 0;
     if (fabs(CPpT) > fabs(SPpT))
         C1 = B1 / CPpT;
     else
         C1 = B2 / SPpT;
 
     // e and f are the singular values
-    double e = (C0 + C1) / 2;
-    double f = (C0 - C1) / 2;
+    float e = (C0 + C1) / 2;
+    float f = (C0 - C1) / 2;
 
     if (e < 0) {
         e = -e;
@@ -169,7 +169,7 @@ void svd22(const double A[4], double U[4], double S[2], double V[4])
         S[1] = e;
 
         // exchange columns of U and V
-        double tmp[2];
+        float tmp[2];
         tmp[0] = U[0];
         tmp[1] = U[2];
         U[0] = U[1];
@@ -186,28 +186,28 @@ void svd22(const double A[4], double U[4], double S[2], double V[4])
     }
 
     /*
-    double SM[4] = { S[0], 0, 0, S[1] };
+    float SM[4] = { S[0], 0, 0, S[1] };
 
-    doubles_print_mat(U, 2, 2, "%20.10g");
-    doubles_print_mat(SM, 2, 2, "%20.10g");
-    doubles_print_mat(V, 2, 2, "%20.10g");
+    floats_print_mat(U, 2, 2, "%20.10g");
+    floats_print_mat(SM, 2, 2, "%20.10g");
+    floats_print_mat(V, 2, 2, "%20.10g");
     printf("A:\n");
-    doubles_print_mat(A, 2, 2, "%20.10g");
+    floats_print_mat(A, 2, 2, "%20.10g");
 
-    double SVt[4];
-    doubles_mat_ABt(SM, 2, 2, V, 2, 2, SVt, 2, 2);
-    double USVt[4];
-    doubles_mat_AB(U, 2, 2, SVt, 2, 2, USVt, 2, 2);
+    float SVt[4];
+    floats_mat_ABt(SM, 2, 2, V, 2, 2, SVt, 2, 2);
+    float USVt[4];
+    floats_mat_AB(U, 2, 2, SVt, 2, 2, USVt, 2, 2);
 
     printf("USVt\n");
-    doubles_print_mat(USVt, 2, 2, "%20.10g");
+    floats_print_mat(USVt, 2, 2, "%20.10g");
 
-    double diff[4];
+    float diff[4];
     for (int i = 0; i < 4; i++)
         diff[i] = A[i] - USVt[i];
 
     printf("diff\n");
-    doubles_print_mat(diff, 2, 2, "%20.10g");
+    floats_print_mat(diff, 2, 2, "%20.10g");
 
     */
 
@@ -215,26 +215,26 @@ void svd22(const double A[4], double U[4], double S[2], double V[4])
 
 
 // for the matrix [a b; b d]
-void svd_sym_singular_values(double A00, double A01, double A11,
-                             double *Lmin, double *Lmax)
+void svd_sym_singular_values(float A00, float A01, float A11,
+                             float *Lmin, float *Lmax)
 {
-    double A10 = A01;
+    float A10 = A01;
 
-    double B0 = A00 + A11;
-    double B1 = A00 - A11;
-    double B2 = A01 + A10;
-    double B3 = A01 - A10;
+    float B0 = A00 + A11;
+    float B1 = A00 - A11;
+    float B2 = A01 + A10;
+    float B3 = A01 - A10;
 
-    double PminusT = atan2(B3, B0);
-    double PplusT = atan2(B2, B1);
+    float PminusT = atan2(B3, B0);
+    float PplusT = atan2(B2, B1);
 
-    double P = (PminusT + PplusT) / 2;
-    double T = (-PminusT + PplusT) / 2;
+    float P = (PminusT + PplusT) / 2;
+    float T = (-PminusT + PplusT) / 2;
 
     // C0 = e+f. There are two ways to compute C0; we pick the one
     // that is better conditioned.
-    double CPmT = cos(P-T), SPmT = sin(P-T);
-    double C0 = 0;
+    float CPmT = cos(P-T), SPmT = sin(P-T);
+    float C0 = 0;
     if (fabs(CPmT) > fabs(SPmT))
         C0 = B0 / CPmT;
     else
@@ -242,16 +242,16 @@ void svd_sym_singular_values(double A00, double A01, double A11,
 
     // C1 = e-f. There are two ways to compute C1; we pick the one
     // that is better conditioned.
-    double CPpT = cos(P+T), SPpT = sin(P+T);
-    double C1 = 0;
+    float CPpT = cos(P+T), SPpT = sin(P+T);
+    float C1 = 0;
     if (fabs(CPpT) > fabs(SPpT))
         C1 = B1 / CPpT;
     else
         C1 = B2 / SPpT;
 
     // e and f are the singular values
-    double e = (C0 + C1) / 2;
-    double f = (C0 - C1) / 2;
+    float e = (C0 + C1) / 2;
+    float f = (C0 - C1) / 2;
 
     *Lmin = fmin(e, f);
     *Lmax = fmax(e, f);

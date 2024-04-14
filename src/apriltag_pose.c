@@ -20,10 +20,10 @@ matd_t* calculate_F(matd_t* v) {
 /**
  * Returns the value of the supplied scalar matrix 'a' and destroys the matrix.
  */
-double matd_to_double(matd_t *a)
+float matd_to_float(matd_t *a)
 {
     assert(matd_is_scalar(a));
-    double d = a->data[0];
+    float d = a->data[0];
     matd_destroy(a);
     return d;
 }
@@ -40,7 +40,7 @@ double matd_to_double(matd_t *a)
  *
  * Implementation of Orthogonal Iteration from Lu, 2000.
  */
-double orthogonal_iteration(matd_t** v, matd_t** p, matd_t** t, matd_t** R, int n_points, int n_steps) {
+float orthogonal_iteration(matd_t** v, matd_t** p, matd_t** t, matd_t** R, int n_points, int n_steps) {
     matd_t* p_mean = matd_create(3, 1);
     for (int i = 0; i < n_points; i++) {
         matd_add_inplace(p_mean, p[i]);
@@ -66,7 +66,7 @@ double orthogonal_iteration(matd_t** v, matd_t** p, matd_t** t, matd_t** R, int 
     matd_destroy(avg_F);
     matd_destroy(M1);
 
-    double prev_error = HUGE_VAL;
+    float prev_error = HUGE_VAL;
     // Iterate.
     for (int i = 0; i < n_steps; i++) {
         // Calculate translation.
@@ -100,7 +100,7 @@ double orthogonal_iteration(matd_t** v, matd_t** p, matd_t** t, matd_t** R, int 
         matd_destroy(M3);
         matd_destroy(*R);
         *R = matd_op("M*M'", M3_svd.U, M3_svd.V);
-        double R_det = matd_det(*R);
+        float R_det = matd_det(*R);
         if (R_det < 0) {
             matd_put(*R, 0, 2, - matd_get(*R, 0, 2));
             matd_put(*R, 1, 2, - matd_get(*R, 1, 2));
@@ -114,10 +114,10 @@ double orthogonal_iteration(matd_t** v, matd_t** p, matd_t** t, matd_t** R, int 
             matd_destroy(q[j]);
         }
 
-        double error = 0;
+        float error = 0;
         for (int j = 0; j < 4; j++) {
             matd_t* err_vec = matd_op("(M-M)(MM+M)", I3, F[j], *R, p[j], *t);
-            error += matd_to_double(matd_op("M'M", err_vec, err_vec));
+            error += matd_to_float(matd_op("M'M", err_vec, err_vec));
             matd_destroy(err_vec);
         }
         prev_error = error;
@@ -140,8 +140,8 @@ double orthogonal_iteration(matd_t** v, matd_t** p, matd_t** t, matd_t** R, int 
 /**
  * Evaluates polynomial p at x.
  */
-double polyval(double* p, int degree, double x) {
-    double ret = 0;
+float polyval(float* p, int degree, float x) {
+    float ret = 0;
     for (int i = 0; i <= degree; i++) {
         ret += p[i]*pow(x, i);
     }
@@ -157,7 +157,7 @@ double polyval(double* p, int degree, double x) {
  * @outparam roots
  * @outparam n_roots
  */
-void solve_poly_approx(double* p, int degree, double* roots, int* n_roots) {
+void solve_poly_approx(float* p, int degree, float* roots, int* n_roots) {
     static const int MAX_ROOT = 1000;
     if (degree == 1) {
         if (fabs(p[0]) > MAX_ROOT*fabs(p[1])) {
@@ -170,12 +170,12 @@ void solve_poly_approx(double* p, int degree, double* roots, int* n_roots) {
     }
 
     // Calculate roots of derivative.
-    double *p_der = malloc(sizeof(double)*degree);
+    float *p_der = malloc(sizeof(float)*degree);
     for (int i = 0; i < degree; i++) {
         p_der[i] = (i + 1) * p[i+1];
     }
 
-    double *der_roots = malloc(sizeof(double)*(degree - 1));
+    float *der_roots = malloc(sizeof(float)*(degree - 1));
     int n_der_roots;
     solve_poly_approx(p_der, degree - 1, der_roots, &n_der_roots);
 
@@ -183,14 +183,14 @@ void solve_poly_approx(double* p, int degree, double* roots, int* n_roots) {
     // Go through all possibilities for roots of the polynomial.
     *n_roots = 0;
     for (int i = 0; i <= n_der_roots; i++) {
-        double min;
+        float min;
         if (i == 0) {
             min = -MAX_ROOT;
         } else {
             min = der_roots[i - 1];
         }
 
-        double max;
+        float max;
         if (i == n_der_roots) {
             max = MAX_ROOT;
         } else {
@@ -201,8 +201,8 @@ void solve_poly_approx(double* p, int degree, double* roots, int* n_roots) {
             // We have a zero-crossing in this interval, use a combination of Newton' and bisection.
             // Some thanks to Numerical Recipes in C.
 
-            double lower;
-            double upper;
+            float lower;
+            float upper;
             if (polyval(p, degree, min) < polyval(p, degree, max)) {
                 lower = min;
                 upper = max;
@@ -210,11 +210,11 @@ void solve_poly_approx(double* p, int degree, double* roots, int* n_roots) {
                 lower = max;
                 upper = min;
             }
-            double root = 0.5*(lower + upper);
-            double dx_old = upper - lower;
-            double dx = dx_old;
-            double f = polyval(p, degree, root);
-            double df = polyval(p_der, degree - 1, root);
+            float root = 0.5*(lower + upper);
+            float dx_old = upper - lower;
+            float dx = dx_old;
+            float f = polyval(p, degree, root);
+            float df = polyval(p_der, degree - 1, root);
 
             for (int j = 0; j < 100; j++) {
                 if (((f + df*(upper - root))*(f + df*(lower - root)) > 0)
@@ -244,7 +244,7 @@ void solve_poly_approx(double* p, int degree, double* roots, int* n_roots) {
 
             roots[(*n_roots)++] = root;
         } else if(polyval(p, degree, max) == 0) {
-            // Double/triple root.
+            // float/triple root.
             roots[(*n_roots)++] = max;
         }
     }
@@ -271,7 +271,7 @@ matd_t* fix_pose_ambiguities(matd_t** v, matd_t** p, matd_t* t, matd_t* R, int n
 
     matd_t* R_t_2 = matd_crossproduct(R_t_3, R_t_1);
 
-    matd_t* R_t = matd_create_data(3, 3, (double[]) {
+    matd_t* R_t = matd_create_data(3, 3, (float[]) {
             MATD_EL(R_t_1, 0, 0), MATD_EL(R_t_1, 0, 1), MATD_EL(R_t_1, 0, 2),
             MATD_EL(R_t_2, 0, 0), MATD_EL(R_t_2, 0, 1), MATD_EL(R_t_2, 0, 2),
             MATD_EL(R_t_3, 0, 0), MATD_EL(R_t_3, 0, 1), MATD_EL(R_t_3, 0, 2)});
@@ -281,31 +281,31 @@ matd_t* fix_pose_ambiguities(matd_t** v, matd_t** p, matd_t* t, matd_t* R, int n
 
     // 2. Find R_z
     matd_t* R_1_prime = matd_multiply(R_t, R);
-    double r31 = MATD_EL(R_1_prime, 2, 0);
-    double r32 = MATD_EL(R_1_prime, 2, 1);
-    double hypotenuse = sqrt(r31*r31 + r32*r32);
+    float r31 = MATD_EL(R_1_prime, 2, 0);
+    float r32 = MATD_EL(R_1_prime, 2, 1);
+    float hypotenuse = sqrt(r31*r31 + r32*r32);
     if (hypotenuse < 1e-100) {
         r31 = 1;
         r32 = 0;
         hypotenuse = 1;
     }
-    matd_t* R_z = matd_create_data(3, 3, (double[]) {
+    matd_t* R_z = matd_create_data(3, 3, (float[]) {
             r31/hypotenuse, -r32/hypotenuse, 0,
             r32/hypotenuse, r31/hypotenuse, 0,
             0, 0, 1});
 
     // 3. Calculate parameters of Eos
     matd_t* R_trans = matd_multiply(R_1_prime, R_z);
-    double sin_gamma = -MATD_EL(R_trans, 0, 1);
-    double cos_gamma = MATD_EL(R_trans, 1, 1);
-    matd_t* R_gamma = matd_create_data(3, 3, (double[]) {
+    float sin_gamma = -MATD_EL(R_trans, 0, 1);
+    float cos_gamma = MATD_EL(R_trans, 1, 1);
+    matd_t* R_gamma = matd_create_data(3, 3, (float[]) {
             cos_gamma, -sin_gamma, 0,
             sin_gamma, cos_gamma, 0,
             0, 0, 1});
 
-    double sin_beta = -MATD_EL(R_trans, 2, 0);
-    double cos_beta = MATD_EL(R_trans, 2, 2);
-    double t_initial = atan2(sin_beta, cos_beta);
+    float sin_beta = -MATD_EL(R_trans, 2, 0);
+    float cos_beta = MATD_EL(R_trans, 2, 2);
+    float t_initial = atan2(sin_beta, cos_beta);
     matd_destroy(R_trans);
 
     matd_t** v_trans = malloc(sizeof(matd_t *)*n_points);
@@ -323,11 +323,11 @@ matd_t* fix_pose_ambiguities(matd_t** v, matd_t** p, matd_t* t, matd_t* R, int n
     matd_t* G = matd_op("(M-M)^-1", I3, avg_F_trans);
     matd_scale_inplace(G, 1.0/n_points);
 
-    matd_t* M1 = matd_create_data(3, 3, (double[]) {
+    matd_t* M1 = matd_create_data(3, 3, (float[]) {
             0, 0, 2,
             0, 0, 0,
             -2, 0, 0});
-    matd_t* M2 = matd_create_data(3, 3, (double[]) {
+    matd_t* M2 = matd_create_data(3, 3, (float[]) {
             -1, 0, 0,
             0, 1, 0,
             0, 0, -1});
@@ -352,21 +352,21 @@ matd_t* fix_pose_ambiguities(matd_t** v, matd_t** p, matd_t* t, matd_t* R, int n
     matd_t* b1_ = matd_multiply(G, b1);
     matd_t* b2_ = matd_multiply(G, b2);
 
-    double a0 = 0;
-    double a1 = 0;
-    double a2 = 0;
-    double a3 = 0;
-    double a4 = 0;
+    float a0 = 0;
+    float a1 = 0;
+    float a2 = 0;
+    float a3 = 0;
+    float a4 = 0;
     for (int i = 0; i < n_points; i++) {
         matd_t* c0 = matd_op("(M-M)(MM+M)", I3, F_trans[i], R_gamma, p_trans[i], b0_);
         matd_t* c1 = matd_op("(M-M)(MMM+M)", I3, F_trans[i], R_gamma, M1, p_trans[i], b1_);
         matd_t* c2 = matd_op("(M-M)(MMM+M)", I3, F_trans[i], R_gamma, M2, p_trans[i], b2_);
 
-        a0 += matd_to_double(matd_op("M'M", c0, c0));
-        a1 += matd_to_double(matd_op("2M'M", c0, c1));
-        a2 += matd_to_double(matd_op("M'M+2M'M", c1, c1, c0, c2));
-        a3 += matd_to_double(matd_op("2M'M", c1, c2));
-        a4 += matd_to_double(matd_op("M'M", c2, c2));
+        a0 += matd_to_float(matd_op("M'M", c0, c0));
+        a1 += matd_to_float(matd_op("2M'M", c0, c1));
+        a2 += matd_to_float(matd_op("M'M+2M'M", c1, c1, c0, c2));
+        a3 += matd_to_float(matd_op("2M'M", c1, c2));
+        a4 += matd_to_float(matd_op("M'M", c2, c2));
 
         matd_destroy(c0);
         matd_destroy(c1);
@@ -393,28 +393,28 @@ matd_t* fix_pose_ambiguities(matd_t** v, matd_t** p, matd_t* t, matd_t* R, int n
 
 
     // 4. Solve for minima of Eos.
-    double p0 = a1;
-    double p1 = 2*a2 - 4*a0;
-    double p2 = 3*a3 - 3*a1;
-    double p3 = 4*a4 - 2*a2;
-    double p4 = -a3;
+    float p0 = a1;
+    float p1 = 2*a2 - 4*a0;
+    float p2 = 3*a3 - 3*a1;
+    float p3 = 4*a4 - 2*a2;
+    float p4 = -a3;
 
-    double roots[4];
+    float roots[4];
     int n_roots;
-    solve_poly_approx((double []) {p0, p1, p2, p3, p4}, 4, roots, &n_roots);
+    solve_poly_approx((float []) {p0, p1, p2, p3, p4}, 4, roots, &n_roots);
 
-    double minima[4];
+    float minima[4];
     int n_minima = 0;
     for (int i = 0; i < n_roots; i++) {
-        double t1 = roots[i];
-        double t2 = t1*t1;
-        double t3 = t1*t2;
-        double t4 = t1*t3;
-        double t5 = t1*t4;
+        float t1 = roots[i];
+        float t2 = t1*t1;
+        float t3 = t1*t2;
+        float t4 = t1*t3;
+        float t5 = t1*t4;
         // Check extrema is a minima.
         if (a2 - 2*a0 + (3*a3 - 6*a1)*t1 + (6*a4 - 8*a2 + 10*a0)*t2 + (-8*a3 + 6*a1)*t3 + (-6*a4 + 3*a2)*t4 + a3*t5 >= 0) {
             // And that it corresponds to an angle different than the known minimum.
-            double t_cur = 2*atan(roots[i]);
+            float t_cur = 2*atan(roots[i]);
             // We only care about finding a second local minima which is qualitatively
             // different than the first.
             if (fabs(t_cur - t_initial) > 0.1) {
@@ -426,7 +426,7 @@ matd_t* fix_pose_ambiguities(matd_t** v, matd_t** p, matd_t* t, matd_t* R, int n
     // 5. Get poses for minima.
     matd_t* ret = NULL;
     if (n_minima == 1) {
-        double t_cur = minima[0];
+        float t_cur = minima[0];
         matd_t* R_beta = matd_copy(M2);
         matd_scale_inplace(R_beta, t_cur);
         matd_add_inplace(R_beta, M1);
@@ -453,7 +453,7 @@ matd_t* fix_pose_ambiguities(matd_t** v, matd_t** p, matd_t* t, matd_t* R, int n
  * Estimate pose of the tag using the homography method.
  */
 void estimate_pose_for_tag_homography(apriltag_detection_info_t* info, apriltag_pose_t* solution) {
-    double scale = info->tagsize/2.0;
+    float scale = info->tagsize/2.0;
 
     matd_t *M_H = homography_to_pose(info->det->H, -info->fx, info->fy, info->cx, info->cy);
     MATD_EL(M_H, 0, 3) *= scale;
@@ -489,20 +489,20 @@ void estimate_pose_for_tag_homography(apriltag_detection_info_t* info, apriltag_
  */
 void estimate_tag_pose_orthogonal_iteration(
         apriltag_detection_info_t* info,
-        double* err1,
+        float* err1,
         apriltag_pose_t* solution1,
-        double* err2,
+        float* err2,
         apriltag_pose_t* solution2,
         int nIters) {
-    double scale = info->tagsize/2.0;
+    float scale = info->tagsize/2.0;
     matd_t* p[4] = {
-        matd_create_data(3, 1, (double[]) {-scale, scale, 0}),
-        matd_create_data(3, 1, (double[]) {scale, scale, 0}),
-        matd_create_data(3, 1, (double[]) {scale, -scale, 0}),
-        matd_create_data(3, 1, (double[]) {-scale, -scale, 0})};
+        matd_create_data(3, 1, (float[]) {-scale, scale, 0}),
+        matd_create_data(3, 1, (float[]) {scale, scale, 0}),
+        matd_create_data(3, 1, (float[]) {scale, -scale, 0}),
+        matd_create_data(3, 1, (float[]) {-scale, -scale, 0})};
     matd_t* v[4];
     for (int i = 0; i < 4; i++) {
-        v[i] = matd_create_data(3, 1, (double[]) {
+        v[i] = matd_create_data(3, 1, (float[]) {
                 (info->det->p[i][0] - info->cx)/info->fx, (info->det->p[i][1] - info->cy)/info->fy, 1});
     }
 
@@ -525,8 +525,8 @@ void estimate_tag_pose_orthogonal_iteration(
 /**
  * Estimate tag pose.
  */
-double estimate_tag_pose(apriltag_detection_info_t* info, apriltag_pose_t* pose) {
-    double err1, err2;
+float estimate_tag_pose(apriltag_detection_info_t* info, apriltag_pose_t* pose) {
+    float err1, err2;
     apriltag_pose_t pose1, pose2;
     estimate_tag_pose_orthogonal_iteration(info, &err1, &pose1, &err2, &pose2, 50);
     if (err1 <= err2) {

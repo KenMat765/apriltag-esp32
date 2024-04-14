@@ -216,17 +216,17 @@ void pjpeg_idct_2D_u32(int32_t in[64], uint8_t *out, uint32_t outstride)
 
 ///////////////////////////////////////////////////////
 // Below: a "as straight-forward as I can make" implementation.
-static inline void idct_1D_double(double *in, int instride, double *out, int outstride)
+static inline void idct_1D_float(float *in, int instride, float *out, int outstride)
 {
     for (int x = 0; x < 8; x++)
         out[x*outstride] = 0;
 
     // iterate over IDCT coefficients
-    double Cu = 1/sqrt(2);
+    float Cu = 1/sqrt(2);
 
     for (int u = 0; u < 8; u++, Cu = 1) {
 
-        double coeff = in[u*instride];
+        float coeff = in[u*instride];
         if (coeff == 0)
             continue;
 
@@ -235,21 +235,21 @@ static inline void idct_1D_double(double *in, int instride, double *out, int out
     }
 }
 
-void pjpeg_idct_2D_double(int32_t in[64], uint8_t *out, uint32_t outstride)
+void pjpeg_idct_2D_float(int32_t in[64], uint8_t *out, uint32_t outstride)
 {
-    double din[64], dout[64];
+    float din[64], dout[64];
     for (int i = 0; i < 64; i++)
         din[i] = in[i];
 
-    double tmp[64];
+    float tmp[64];
 
     // idct on rows
     for (int y = 0; y < 8; y++)
-        idct_1D_double(&din[8*y], 1, &tmp[8*y], 1);
+        idct_1D_float(&din[8*y], 1, &tmp[8*y], 1);
 
     // idct on columns
     for (int x = 0; x < 8; x++)
-        idct_1D_double(&tmp[x], 8, &dout[x], 8);
+        idct_1D_float(&tmp[x], 8, &dout[x], 8);
 
     // scale, adjust bias, and clamp
     for (int y = 0; y < 8; y++) {

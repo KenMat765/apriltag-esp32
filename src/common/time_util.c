@@ -98,7 +98,7 @@ uint32_t timeutil_sleep(unsigned int seconds)
 #endif
 }
 
-int32_t timeutil_sleep_hz(timeutil_rest_t *rest, double hz)
+int32_t timeutil_sleep_hz(timeutil_rest_t *rest, float hz)
 {
     int64_t max_delay = 1000000L/hz;
     int64_t curr_time = utime_now();
@@ -131,19 +131,19 @@ void timeutil_timer_stop(timeutil_rest_t *rest)
     rest->acc_time += diff;
 }
 
-bool timeutil_timer_timeout(timeutil_rest_t *rest, double timeout_s)
+bool timeutil_timer_timeout(timeutil_rest_t *rest, float timeout_s)
 {
     int64_t timeout_us = (int64_t)(1000000L*timeout_s);
     return rest->acc_time > timeout_us;
 }
 
-int64_t time_util_hhmmss_ss_to_utime(double time)
+int64_t time_util_hhmmss_ss_to_utime(float time)
 {
     int64_t utime = 0;
 
     int itime = ((int) time);
 
-    double seconds = fmod(time, 100.0);
+    float seconds = fmod(time, 100.0);
     uint8_t minutes = (itime % 10000) / 100;
     uint8_t hours =  itime / 10000;
 

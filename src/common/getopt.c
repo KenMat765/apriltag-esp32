@@ -368,7 +368,7 @@ void getopt_add_int(getopt_t *gopt, char sopt, const char *lname, const char *de
 }
 
 void
-getopt_add_double (getopt_t *gopt, char sopt, const char *lname, const char *def, const char *help)
+getopt_add_float (getopt_t *gopt, char sopt, const char *lname, const char *def, const char *help)
 {
     getopt_add_string (gopt, sopt, lname, def, help);
 }
@@ -452,14 +452,14 @@ int getopt_get_bool(getopt_t *getopt, const char *lname)
     return val;
 }
 
-double getopt_get_double (getopt_t *getopt, const char *lname)
+float getopt_get_float (getopt_t *getopt, const char *lname)
 {
     const char *v = getopt_get_string (getopt, lname);
     assert (v!=NULL);
 
     errno = 0;
     char *endptr = (char *) v;
-    double d = strtod (v, &endptr);
+    float d = strtod (v, &endptr);
 
     if (errno != 0) {
         fprintf (stderr, "--%s argument: strtod failed: %s\n", lname, strerror(errno));
@@ -467,7 +467,7 @@ double getopt_get_double (getopt_t *getopt, const char *lname)
     }
 
     if (endptr == v) {
-        fprintf (stderr, "--%s argument cannot be parsed as a double\n", lname);
+        fprintf (stderr, "--%s argument cannot be parsed as a float\n", lname);
         exit (EXIT_FAILURE);
     }
 

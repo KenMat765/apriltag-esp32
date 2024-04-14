@@ -41,7 +41,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 // a matd_t with rows=0 cols=0 is a SCALAR.
 
 // to ease creating mati, matf, etc. in the future.
-#define TYPE double
+#define TYPE float
 
 matd_t *matd_create(int rows, int cols)
 {
@@ -51,7 +51,7 @@ matd_t *matd_create(int rows, int cols)
     if (rows == 0 || cols == 0)
         return matd_create_scalar(0);
 
-    matd_t *m = calloc(1, sizeof(matd_t) + (rows*cols*sizeof(double)));
+    matd_t *m = calloc(1, sizeof(matd_t) + (rows*cols*sizeof(float)));
     m->nrows = rows;
     m->ncols = cols;
 
@@ -60,7 +60,7 @@ matd_t *matd_create(int rows, int cols)
 
 matd_t *matd_create_scalar(TYPE v)
 {
-    matd_t *m = calloc(1, sizeof(matd_t) + sizeof(double));
+    matd_t *m = calloc(1, sizeof(matd_t) + sizeof(float));
     m->nrows = 0;
     m->ncols = 0;
     m->data[0] = v;
@@ -87,7 +87,7 @@ matd_t *matd_create_dataf(int rows, int cols, const float *data)
 
     matd_t *m = matd_create(rows, cols);
     for (int i = 0; i < rows * cols; i++)
-        m->data[i] = (double)data[i];
+        m->data[i] = (float)data[i];
 
     return m;
 }
@@ -250,7 +250,7 @@ matd_t *matd_multiply(const matd_t *a, const matd_t *b)
     return m;
 }
 
-matd_t *matd_scale(const matd_t *a, double s)
+matd_t *matd_scale(const matd_t *a, float s)
 {
     assert(a != NULL);
 
@@ -268,7 +268,7 @@ matd_t *matd_scale(const matd_t *a, double s)
     return m;
 }
 
-void matd_scale_inplace(matd_t *a, double s)
+void matd_scale_inplace(matd_t *a, float s)
 {
     assert(a != NULL);
 
@@ -384,7 +384,7 @@ matd_t *matd_transpose(const matd_t *a)
 }
 
 static
-double matd_det_general(const matd_t *a)
+float matd_det_general(const matd_t *a)
 {
     // Use LU decompositon to calculate the determinant
     matd_plu_t *mlu = matd_plu(a);
@@ -393,7 +393,7 @@ double matd_det_general(const matd_t *a)
 
     // The determinants of the L and U matrices are the products of
     // their respective diagonal elements
-    double detL = 1; double detU = 1;
+    float detL = 1; float detU = 1;
     for (unsigned int i = 0; i < a->nrows; i++) {
         detL *= matd_get(L, i, i);
         detU *= matd_get(U, i, i);
@@ -404,7 +404,7 @@ double matd_det_general(const matd_t *a)
     // where epsilon is just the sign of the corresponding permutation
     // (which is +1 for an even number of permutations and is −1
     // for an uneven number of permutations).
-    double det = mlu->pivsign * detL * detU;
+    float det = mlu->pivsign * detL * detU;
 
     // Cleanup
     matd_plu_destroy(mlu);
@@ -414,7 +414,7 @@ double matd_det_general(const matd_t *a)
     return det;
 }
 
-double matd_det(const matd_t *a)
+float matd_det(const matd_t *a)
 {
     assert(a != NULL);
     assert(a->nrows == a->ncols);
@@ -444,10 +444,10 @@ double matd_det(const matd_t *a)
 
         case 4: {
             // 4x4 matrix
-            double m00 = MATD_EL(a,0,0), m01 = MATD_EL(a,0,1), m02 = MATD_EL(a,0,2), m03 = MATD_EL(a,0,3);
-            double m10 = MATD_EL(a,1,0), m11 = MATD_EL(a,1,1), m12 = MATD_EL(a,1,2), m13 = MATD_EL(a,1,3);
-            double m20 = MATD_EL(a,2,0), m21 = MATD_EL(a,2,1), m22 = MATD_EL(a,2,2), m23 = MATD_EL(a,2,3);
-            double m30 = MATD_EL(a,3,0), m31 = MATD_EL(a,3,1), m32 = MATD_EL(a,3,2), m33 = MATD_EL(a,3,3);
+            float m00 = MATD_EL(a,0,0), m01 = MATD_EL(a,0,1), m02 = MATD_EL(a,0,2), m03 = MATD_EL(a,0,3);
+            float m10 = MATD_EL(a,1,0), m11 = MATD_EL(a,1,1), m12 = MATD_EL(a,1,2), m13 = MATD_EL(a,1,3);
+            float m20 = MATD_EL(a,2,0), m21 = MATD_EL(a,2,1), m22 = MATD_EL(a,2,2), m23 = MATD_EL(a,2,3);
+            float m30 = MATD_EL(a,3,0), m31 = MATD_EL(a,3,1), m32 = MATD_EL(a,3,2), m33 = MATD_EL(a,3,3);
 
             return m00 * m11 * m22 * m33 - m00 * m11 * m23 * m32 -
                 m00 * m21 * m12 * m33 + m00 * m21 * m13 * m32 + m00 * m31 * m12 * m23 -
@@ -490,11 +490,11 @@ matd_t *matd_inverse(const matd_t *x)
 
     switch(x->nrows) {
         case 1: {
-            double det = x->data[0];
+            float det = x->data[0];
             if (det == 0)
                 return NULL;
 
-            double invdet = 1.0 / det;
+            float invdet = 1.0 / det;
 
             m = matd_create(x->nrows, x->nrows);
             MATD_EL(m, 0, 0) = 1.0 * invdet;
@@ -502,11 +502,11 @@ matd_t *matd_inverse(const matd_t *x)
         }
 
         case 2: {
-            double det = x->data[0] * x->data[3] - x->data[1] * x->data[2];
+            float det = x->data[0] * x->data[3] - x->data[1] * x->data[2];
             if (det == 0)
                 return NULL;
 
-            double invdet = 1.0 / det;
+            float invdet = 1.0 / det;
 
             m = matd_create(x->nrows, x->nrows);
             MATD_EL(m, 0, 0) = MATD_EL(x, 1, 1) * invdet;
@@ -705,7 +705,7 @@ static matd_t *matd_op_recurse(const char *expr, int *pos, matd_t *acc, matd_t *
             case '.': {
                 const char *start = &expr[*pos];
                 char *end;
-                double s = strtod(start, &end);
+                float s = strtod(start, &end);
                 (*pos) += (end - start);
                 matd_t *rhs = matd_create_scalar(s);
                 garb[*garbpos] = rhs;
@@ -839,19 +839,19 @@ matd_t *matd_op(const char *expr, ...)
     return res_copy;
 }
 
-double matd_vec_mag(const matd_t *a)
+float matd_vec_mag(const matd_t *a)
 {
     assert(a != NULL);
     assert(matd_is_vector(a));
 
-    double mag = 0.0;
+    float mag = 0.0;
     int len = a->nrows*a->ncols;
     for (int i = 0; i < len; i++)
         mag += sq(a->data[i]);
     return sqrt(mag);
 }
 
-double matd_vec_dist(const matd_t *a, const matd_t *b)
+float matd_vec_dist(const matd_t *a, const matd_t *b)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -862,7 +862,7 @@ double matd_vec_dist(const matd_t *a, const matd_t *b)
     return matd_vec_dist_n(a, b, lena);
 }
 
-double matd_vec_dist_n(const matd_t *a, const matd_t *b, int n)
+float matd_vec_dist_n(const matd_t *a, const matd_t *b, int n)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -875,7 +875,7 @@ double matd_vec_dist_n(const matd_t *a, const matd_t *b, int n)
     (void)lena;
     (void)lenb;
 
-    double mag = 0.0;
+    float mag = 0.0;
     for (int i = 0; i < n; i++)
         mag += sq(a->data[i] - b->data[i]);
     return sqrt(mag);
@@ -885,12 +885,12 @@ double matd_vec_dist_n(const matd_t *a, const matd_t *b, int n)
 static inline int max_idx(const matd_t *A, int row, int maxcol)
 {
     int maxi = 0;
-    double maxv = -1;
+    float maxv = -1;
 
     for (int i = 0; i < maxcol; i++) {
         if (i == row)
             continue;
-        double v = fabs(MATD_EL(A, row, i));
+        float v = fabs(MATD_EL(A, row, i));
         if (v > maxv) {
             maxi = i;
             maxv = v;
@@ -900,7 +900,7 @@ static inline int max_idx(const matd_t *A, int row, int maxcol)
     return maxi;
 }
 
-double matd_vec_dot_product(const matd_t *a, const matd_t *b)
+float matd_vec_dot_product(const matd_t *a, const matd_t *b)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -910,7 +910,7 @@ double matd_vec_dot_product(const matd_t *a, const matd_t *b)
     assert(adim == bdim);
     (void)bdim;
 
-    double acc = 0;
+    float acc = 0;
     for (int i = 0; i < adim; i++) {
         acc += a->data[i] * b->data[i];
     }
@@ -923,7 +923,7 @@ matd_t *matd_vec_normalize(const matd_t *a)
     assert(a != NULL);
     assert(matd_is_vector(a));
 
-    double mag = matd_vec_mag(a);
+    float mag = matd_vec_mag(a);
     assert(mag > 0);
 
     matd_t *b = matd_create(a->nrows, a->ncols);
@@ -1024,15 +1024,15 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
             //
             int vlen = A->nrows - hhidx;
 
-            double *v = malloc(sizeof(double)*vlen);
+            float *v = malloc(sizeof(float)*vlen);
 
-            double mag2 = 0;
+            float mag2 = 0;
             for (int i = 0; i < vlen; i++) {
                 v[i] = MATD_EL(B, hhidx+i, hhidx);
                 mag2 += v[i]*v[i];
             }
 
-            double oldv0 = v[0];
+            float oldv0 = v[0];
             if (oldv0 < 0)
                 v[0] -= sqrt(mag2);
             else
@@ -1041,7 +1041,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
             mag2 += -oldv0*oldv0 + v[0]*v[0];
 
             // normalize v
-            double mag = sqrt(mag2);
+            float mag = sqrt(mag2);
 
             // this case arises with matrices of all zeros, for example.
             if (mag == 0) {
@@ -1063,7 +1063,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
             // Implementation: take each row of LS, compute dot product with n,
             // subtract n (scaled by dot product) from it.
             for (unsigned int i = 0; i < LS->nrows; i++) {
-                double dot = 0;
+                float dot = 0;
                 for (int j = 0; j < vlen; j++)
                     dot += MATD_EL(LS, i, hhidx+j) * v[j];
                 for (int j = 0; j < vlen; j++)
@@ -1072,7 +1072,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
 
             //  B = matd_op("M*F", Q, B); // should be Q', but Q is symmetric.
             for (unsigned int i = 0; i < B->ncols; i++) {
-                double dot = 0;
+                float dot = 0;
                 for (int j = 0; j < vlen; j++)
                     dot += MATD_EL(B, hhidx+j, i) * v[j];
                 for (int j = 0; j < vlen; j++)
@@ -1085,15 +1085,15 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
         if (hhidx+2 < A->ncols) {
             int vlen = A->ncols - hhidx - 1;
 
-            double *v = malloc(sizeof(double)*vlen);
+            float *v = malloc(sizeof(float)*vlen);
 
-            double mag2 = 0;
+            float mag2 = 0;
             for (int i = 0; i < vlen; i++) {
                 v[i] = MATD_EL(B, hhidx, hhidx+i+1);
                 mag2 += v[i]*v[i];
             }
 
-            double oldv0 = v[0];
+            float oldv0 = v[0];
             if (oldv0 < 0)
                 v[0] -= sqrt(mag2);
             else
@@ -1102,7 +1102,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
             mag2 += -oldv0*oldv0 + v[0]*v[0];
 
             // compute magnitude of ([1 0 0..]+v)
-            double mag = sqrt(mag2);
+            float mag = sqrt(mag2);
 
             // this case can occur when the vectors are already perpendicular
             if (mag == 0) {
@@ -1121,7 +1121,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
 
             //  RS = matd_op("F*M", RS, Q);
             for (unsigned int i = 0; i < RS->nrows; i++) {
-                double dot = 0;
+                float dot = 0;
                 for (int j = 0; j < vlen; j++)
                     dot += MATD_EL(RS, i, hhidx+1+j) * v[j];
                 for (int j = 0; j < vlen; j++)
@@ -1130,7 +1130,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
 
             //   B = matd_op("F*M", B, Q); // should be Q', but Q is symmetric.
             for (unsigned int i = 0; i < B->nrows; i++) {
-                double dot = 0;
+                float dot = 0;
                 for (int j = 0; j < vlen; j++)
                     dot += MATD_EL(B, i, hhidx+1+j) * v[j];
                 for (int j = 0; j < vlen; j++)
@@ -1148,9 +1148,9 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
     assert(maxiters > 0); // reassure clang
     int iter;
 
-    double maxv; // maximum non-zero value being reduced this iteration
+    float maxv; // maximum non-zero value being reduced this iteration
 
-    double tol = 1E-10;
+    float tol = 1E-10;
 
     // which method will we use to find the largest off-diagonal
     // element of B?
@@ -1199,7 +1199,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
 
                 // the magnitude of the largest off-diagonal element
                 // in this row.
-                double thismaxv;
+                float thismaxv;
 
                 // row 'lastmaxi' and 'lastmaxj' have been completely
                 // changed. compute from scratch.
@@ -1229,7 +1229,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
 
                 // check column lastmaxi. Is it now the maximum?
                 if (lastmaxi != rowi) {
-                    double v = fabs(MATD_EL(B, rowi, lastmaxi));
+                    float v = fabs(MATD_EL(B, rowi, lastmaxi));
                     if (v > thismaxv) {
                         thismaxv = v;
                         maxrowidx[rowi] = lastmaxi;
@@ -1238,7 +1238,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
 
                 // check column lastmaxj
                 if (lastmaxj != rowi) {
-                    double v = fabs(MATD_EL(B, rowi, lastmaxj));
+                    float v = fabs(MATD_EL(B, rowi, lastmaxj));
                     if (v > thismaxv) {
                         thismaxv = v;
                         maxrowidx[rowi] = lastmaxj;
@@ -1273,7 +1273,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
                     if (i == j)
                         continue;
 
-                    double v = fabs(MATD_EL(B, i, j));
+                    float v = fabs(MATD_EL(B, i, j));
 
                     if (v > maxv) {
                         maxi = i;
@@ -1295,19 +1295,19 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
         // Now, solve the 2x2 SVD problem for the matrix
         // [ A0 A1 ]
         // [ A2 A3 ]
-        double A0 = MATD_EL(B, maxi, maxi);
-        double A1 = MATD_EL(B, maxi, maxj);
-        double A2 = MATD_EL(B, maxj, maxi);
-        double A3 = MATD_EL(B, maxj, maxj);
+        float A0 = MATD_EL(B, maxi, maxi);
+        float A1 = MATD_EL(B, maxi, maxj);
+        float A2 = MATD_EL(B, maxj, maxi);
+        float A3 = MATD_EL(B, maxj, maxj);
 
         if (1) {
-            double AQ[4];
+            float AQ[4];
             AQ[0] = A0;
             AQ[1] = A1;
             AQ[2] = A2;
             AQ[3] = A3;
 
-            double U[4], S[2], V[4];
+            float U[4], S[2], V[4];
             svd22(AQ, U, S, V);
 
 /*  Reference (slow) implementation...
@@ -1335,8 +1335,8 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
 
             //  LS = matd_op("F*M", LS, QL);
             for (unsigned int i = 0; i < LS->nrows; i++) {
-                double vi = MATD_EL(LS, i, maxi);
-                double vj = MATD_EL(LS, i, maxj);
+                float vi = MATD_EL(LS, i, maxi);
+                float vj = MATD_EL(LS, i, maxj);
 
                 MATD_EL(LS, i, maxi) = U[0]*vi + U[2]*vj;
                 MATD_EL(LS, i, maxj) = U[1]*vi + U[3]*vj;
@@ -1344,8 +1344,8 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
 
             //  RS = matd_op("F*M", RS, QR); // remember we'll transpose RS.
             for (unsigned int i = 0; i < RS->nrows; i++) {
-                double vi = MATD_EL(RS, i, maxi);
-                double vj = MATD_EL(RS, i, maxj);
+                float vi = MATD_EL(RS, i, maxi);
+                float vj = MATD_EL(RS, i, maxj);
 
                 MATD_EL(RS, i, maxi) = V[0]*vi + V[2]*vj;
                 MATD_EL(RS, i, maxj) = V[1]*vi + V[3]*vj;
@@ -1354,8 +1354,8 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
             // B = matd_op("M'*F*M", QL, B, QR);
             // The QL matrix mixes rows of B.
             for (unsigned int i = 0; i < B->ncols; i++) {
-                double vi = MATD_EL(B, maxi, i);
-                double vj = MATD_EL(B, maxj, i);
+                float vi = MATD_EL(B, maxi, i);
+                float vj = MATD_EL(B, maxj, i);
 
                 MATD_EL(B, maxi, i) = U[0]*vi + U[2]*vj;
                 MATD_EL(B, maxj, i) = U[1]*vi + U[3]*vj;
@@ -1363,8 +1363,8 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
 
             // The QR matrix mixes columns of B.
             for (unsigned int i = 0; i < B->nrows; i++) {
-                double vi = MATD_EL(B, i, maxi);
-                double vj = MATD_EL(B, i, maxj);
+                float vi = MATD_EL(B, i, maxi);
+                float vj = MATD_EL(B, i, maxj);
 
                 MATD_EL(B, i, maxi) = V[0]*vi + V[2]*vj;
                 MATD_EL(B, i, maxj) = V[1]*vi + V[3]*vj;
@@ -1384,7 +1384,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
     // them all positive by flipping the corresponding columns of
     // U/LS.
     int *idxs = malloc(sizeof(int)*A->ncols);
-    double *vals = malloc(sizeof(double)*A->ncols);
+    float *vals = malloc(sizeof(float)*A->ncols);
     for (unsigned int i = 0; i < A->ncols; i++) {
         idxs[i] = i;
         vals[i] = MATD_EL(B, i, i);
@@ -1401,7 +1401,7 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
                 idxs[i] = idxs[i+1];
                 idxs[i+1] = tmpi;
 
-                double tmpv = vals[i];
+                float tmpv = vals[i];
                 vals[i] = vals[i+1];
                 vals[i+1] = tmpv;
 
@@ -1485,7 +1485,7 @@ matd_svd_t matd_svd_flags(matd_t *A, int flags)
 
 /*
   matd_t *check = matd_op("M*M*M'-M", res.U, res.S, res.V, A);
-  double maxerr = 0;
+  float maxerr = 0;
 
   for (int i = 0; i < check->nrows; i++)
   for (int j = 0; j < check->ncols; j++)
@@ -1527,7 +1527,7 @@ matd_plu_t *matd_plu(const matd_t *a)
             int kmax = i < j ? i : j; // min(i,j)
 
             // compute dot product of row i with column j (up through element kmax)
-            double acc = 0;
+            float acc = 0;
             for (int k = 0; k < kmax; k++)
                 acc += MATD_EL(lu, i, k) * MATD_EL(lu, k, j);
 
@@ -1557,7 +1557,7 @@ matd_plu_t *matd_plu(const matd_t *a)
             free(tmp);
         }
 
-        double LUjj = MATD_EL(lu, j, j);
+        float LUjj = MATD_EL(lu, j, j);
 
         // If our pivot is very small (which means the matrix is
         // singular or nearly singular), replace with a new pivot of the
@@ -1596,10 +1596,10 @@ void matd_plu_destroy(matd_plu_t *mlu)
     free(mlu);
 }
 
-double matd_plu_det(const matd_plu_t *mlu)
+float matd_plu_det(const matd_plu_t *mlu)
 {
     matd_t *lu = mlu->lu;
-    double det = mlu->pivsign;
+    float det = mlu->pivsign;
 
     if (lu->nrows == lu->ncols) {
         for (unsigned int i = 0; i < lu->ncols; i++)
@@ -1667,7 +1667,7 @@ matd_t *matd_plu_solve(const matd_plu_t *mlu, const matd_t *b)
     // solve Ly = b
     for (unsigned int k = 0; k < mlu->lu->nrows; k++) {
         for (unsigned int i = k+1; i < mlu->lu->nrows; i++) {
-            double LUik = -MATD_EL(mlu->lu, i, k);
+            float LUik = -MATD_EL(mlu->lu, i, k);
             for (unsigned int t = 0; t < b->ncols; t++)
                 MATD_EL(x, i, t) += MATD_EL(x, k, t) * LUik;
         }
@@ -1675,12 +1675,12 @@ matd_t *matd_plu_solve(const matd_plu_t *mlu, const matd_t *b)
 
     // solve Ux = y
     for (int k = mlu->lu->ncols-1; k >= 0; k--) {
-        double LUkk = 1.0 / MATD_EL(mlu->lu, k, k);
+        float LUkk = 1.0 / MATD_EL(mlu->lu, k, k);
         for (unsigned int t = 0; t < b->ncols; t++)
             MATD_EL(x, k, t) *= LUkk;
 
         for (int i = 0; i < k; i++) {
-            double LUik = -MATD_EL(mlu->lu, i, k);
+            float LUik = -MATD_EL(mlu->lu, i, k);
             for (unsigned int t = 0; t < b->ncols; t++)
                 MATD_EL(x, i, t) += MATD_EL(x, k, t) *LUik;
         }
@@ -1707,9 +1707,9 @@ static int randi()
     return v;
 }
 
-static double randf()
+static float randf()
 {
-    double v = 1.0 *random() / RAND_MAX;
+    float v = 1.0 *random() / RAND_MAX;
     return 2*v - 1;
 }
 
@@ -1742,7 +1742,7 @@ int main(int argc, char *argv[])
 
         }
 
-/*        matd_t *A = matd_create_data(2, 5, (double[]) { 1, 5, 2, 6,
+/*        matd_t *A = matd_create_data(2, 5, (float[]) { 1, 5, 2, 6,
           3, 3, 0, 7,
           1, 1, 0, -2,
           4, 0, 9, 9, 2, 6, 1, 3, 2, 5, 5, 4, -1, 2, 5, 9, 8, 2 });
@@ -1778,8 +1778,8 @@ int main(int argc, char *argv[])
 
         matd_svd22_impl(A->data, &s);
 
-        memcpy(U->data, s.U, 4*sizeof(double));
-        memcpy(V->data, s.V, 4*sizeof(double));
+        memcpy(U->data, s.U, 4*sizeof(float));
+        memcpy(V->data, s.V, 4*sizeof(float));
         MATD_EL(S,0,0) = s.S[0];
         MATD_EL(S,1,1) = s.S[1];
 
@@ -1796,7 +1796,7 @@ int main(int argc, char *argv[])
 
         matd_t *USV = matd_op("M*M*M'", U, S, V);
 
-        double maxerr = 0;
+        float maxerr = 0;
         for (int i = 0; i < 4; i++)
             maxerr = fmax(maxerr, fabs(USV->data[i] - A->data[i]));
 
@@ -1819,13 +1819,13 @@ int main(int argc, char *argv[])
 #endif
 
 // XXX NGV Cholesky
-/*static double *matd_cholesky_raw(double *A, int n)
+/*static float *matd_cholesky_raw(float *A, int n)
   {
-  double *L = (double*)calloc(n * n, sizeof(double));
+  float *L = (float*)calloc(n * n, sizeof(float));
 
   for (int i = 0; i < n; i++) {
   for (int j = 0; j < (i+1); j++) {
-  double s = 0;
+  float s = 0;
   for (int k = 0; k < j; k++)
   s += L[i * n + k] * L[j * n + k];
   L[i * n + j] = (i == j) ?
@@ -1840,7 +1840,7 @@ int main(int argc, char *argv[])
   matd_t *matd_cholesky(const matd_t *A)
   {
   assert(A->nrows == A->ncols);
-  double *L_data = matd_cholesky_raw(A->data, A->nrows);
+  float *L_data = matd_cholesky_raw(A->data, A->nrows);
   matd_t *L = matd_create_data(A->nrows, A->ncols, L_data);
   free(L_data);
   return L;
@@ -1867,7 +1867,7 @@ MATD_EL(U, i, j) = 0;
     int is_spd = 1; // (A->nrows == A->ncols);
 
     for (int i = 0; i < N; i++) {
-        double d = MATD_EL(U, i, i);
+        float d = MATD_EL(U, i, i);
         is_spd &= (d > 0);
 
         if (d < MATD_EPS)
@@ -1878,7 +1878,7 @@ MATD_EL(U, i, j) = 0;
             MATD_EL(U, i, j) *= d;
 
         for (int j = i+1; j < N; j++) {
-            double s = MATD_EL(U, i, j);
+            float s = MATD_EL(U, i, j);
 
             if (s == 0)
                 continue;
@@ -1921,7 +1921,7 @@ void matd_ltriangle_solve(matd_t *L, const TYPE *b, TYPE *x)
     int n = L->ncols;
 
     for (int i = 0; i < n; i++) {
-        double acc = b[i];
+        float acc = b[i];
 
         for (int j = 0; j < i; j++) {
             acc -= MATD_EL(L, i, j)*x[j];
@@ -1935,9 +1935,9 @@ void matd_ltriangle_solve(matd_t *L, const TYPE *b, TYPE *x)
 void matd_utriangle_solve(matd_t *u, const TYPE *b, TYPE *x)
 {
     for (int i = u->ncols-1; i >= 0; i--) {
-        double bi = b[i];
+        float bi = b[i];
 
-        double diag = MATD_EL(u, i, i);
+        float diag = MATD_EL(u, i, i);
 
         for (unsigned int j = i+1; j < u->ncols; j++)
             bi -= MATD_EL(u, i, j)*x[j];
@@ -1973,12 +1973,12 @@ matd_t *matd_chol_solve(const matd_chol_t *chol, const matd_t *b)
 
     // solve Ux = y
     for (int k = u->ncols-1; k >= 0; k--) {
-        double LUkk = 1.0 / MATD_EL(u, k, k);
+        float LUkk = 1.0 / MATD_EL(u, k, k);
         for (unsigned int t = 0; t < b->ncols; t++)
             MATD_EL(x, k, t) *= LUkk;
 
         for (int i = 0; i < k; i++) {
-            double LUik = -MATD_EL(u, i, k);
+            float LUik = -MATD_EL(u, i, k);
             for (unsigned int t = 0; t < b->ncols; t++)
                 MATD_EL(x, i, t) += MATD_EL(x, k, t) *LUik;
         }
@@ -2012,9 +2012,9 @@ matd_t *matd_chol_inverse(matd_t *a)
     return inv;
 }
 
-double matd_max(matd_t *m)
+float matd_max(matd_t *m)
 {
-    double d = -DBL_MAX;
+    float d = -DBL_MAX;
     for(unsigned int x=0; x<m->nrows; x++) {
         for(unsigned int y=0; y<m->ncols; y++) {
             if(MATD_EL(m, x, y) > d)

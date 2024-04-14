@@ -10,11 +10,11 @@ extern "C" {
 
 typedef struct {
     apriltag_detection_t* det;
-    double tagsize; // In meters.
-    double fx; // In pixels.
-    double fy; // In pixels.
-    double cx; // In pixels.
-    double cy; // In pixels.
+    float tagsize; // In meters.
+    float fx; // In pixels.
+    float fy; // In pixels.
+    float cx; // In pixels.
+    float cy; // In pixels.
 } apriltag_detection_info_t;
 
 /**
@@ -23,8 +23,8 @@ typedef struct {
  * the camera frame.
  */
 typedef struct {
-    matd_t* R; // Rotation matrix 3x3 of doubles.
-    matd_t* t; // Translation matrix 3x1 of doubles.
+    matd_t* R; // Rotation matrix 3x3 of floats.
+    matd_t* t; // Translation matrix 3x1 of floats.
 } apriltag_pose_t;
 
 /**
@@ -59,9 +59,9 @@ void estimate_pose_for_tag_homography(
  */
 void estimate_tag_pose_orthogonal_iteration(
         apriltag_detection_info_t* info,
-        double* err1,
+        float* err1,
         apriltag_pose_t* pose1,
-        double* err2,
+        float* err2,
         apriltag_pose_t* pose2,
         int nIters);
 
@@ -72,7 +72,7 @@ void estimate_tag_pose_orthogonal_iteration(
  * @outparam pose 
  * @return Object-space error of returned pose.
  */
-double estimate_tag_pose(apriltag_detection_info_t* info, apriltag_pose_t* pose);
+float estimate_tag_pose(apriltag_detection_info_t* info, apriltag_pose_t* pose);
 
 #ifdef __cplusplus
 }

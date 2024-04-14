@@ -172,7 +172,7 @@ static inline void TFN(s_normalize_self)(TNAME *v, int len)
         v[i] /= mag;
 }
 
-static inline void TFN(s_scale_self)(TNAME *v, int len, double scale)
+static inline void TFN(s_scale_self)(TNAME *v, int len, float scale)
 {
     for (int i = 0; i < len; i++)
         v[i] = (TNAME)(v[i] * scale);
@@ -455,8 +455,8 @@ static inline void TFN(s_mat_to_xyz)(const TNAME M[16], TNAME xyz[3])
 
 static inline void TFN(s_mat_to_quat)(const TNAME M[16], TNAME q[4])
 {
-    double T = M[0] + M[5] + M[10] + 1.0;
-    double S;
+    float T = M[0] + M[5] + M[10] + 1.0;
+    float S;
 
     if (T > 0.0000001) {
         S = sqrt(T) * 2;
@@ -1007,7 +1007,7 @@ static inline void TFN(s_mat33_sym_solve)(const TNAME *A, int Arows, int Acols,
     TNAME M[9];
     TFN(s_mat33_lower_tri_inv)(L, 3, 3, M, 3, 3);
 
-    double tmp[3];
+    float tmp[3];
     tmp[0] = M[0]*B[0];
     tmp[1] = M[3]*B[0] + M[4]*B[1];
     tmp[2] = M[6]*B[0] + M[7]*B[1] + M[8]*B[2];

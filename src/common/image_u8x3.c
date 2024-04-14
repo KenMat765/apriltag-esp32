@@ -165,8 +165,8 @@ finish:
 // only width 1 supported
 void image_u8x3_draw_line(image_u8x3_t *im, float x0, float y0, float x1, float y1, uint8_t rgb[3])
 {
-    double dist = sqrtf((y1-y0)*(y1-y0) + (x1-x0)*(x1-x0));
-    double delta = 0.5 / dist;
+    float dist = sqrtf((y1-y0)*(y1-y0) + (x1-x0)*(x1-x0));
+    float delta = 0.5 / dist;
 
     // terrible line drawing code
     for (float f = 0; f <= 1; f += delta) {
@@ -202,7 +202,7 @@ static void convolve(const uint8_t *x, uint8_t *y, int sz, const uint8_t *k, int
         y[i] = x[i];
 }
 
-void image_u8x3_gaussian_blur(image_u8x3_t *im, double sigma, int ksz)
+void image_u8x3_gaussian_blur(image_u8x3_t *im, float sigma, int ksz)
 {
     if (sigma == 0)
         return;
@@ -210,18 +210,18 @@ void image_u8x3_gaussian_blur(image_u8x3_t *im, double sigma, int ksz)
     assert((ksz & 1) == 1); // ksz must be odd.
 
     // build the kernel.
-    double *dk = malloc(sizeof(double)*ksz);
+    float *dk = malloc(sizeof(float)*ksz);
 
     // for kernel of length 5:
     // dk[0] = f(-2), dk[1] = f(-1), dk[2] = f(0), dk[3] = f(1), dk[4] = f(2)
     for (int i = 0; i < ksz; i++) {
         int x = -ksz/2 + i;
-        double v = exp(-.5*sq(x / sigma));
+        float v = exp(-.5*sq(x / sigma));
         dk[i] = v;
     }
 
     // normalize
-    double acc = 0;
+    float acc = 0;
     for (int i = 0; i < ksz; i++)
         acc += dk[i];
 

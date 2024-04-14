@@ -252,7 +252,7 @@ void setup() {
     esp_camera_fb_return(fb);
 
     // Display time needed per frame
-    double t =  timeprofile_total_utime(td->tp) / 1.0E3;
+    float t =  timeprofile_total_utime(td->tp) / 1.0E3;
     Serial.printf("t: %12.3f\n", t);
   }
 }
