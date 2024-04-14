@@ -40,8 +40,12 @@
 #include "camera_pins.h"
 
 // Apriltag headers
+// We choose 25h9 family to use in this demo, but 16h5 family also
+// works. You can change to 16h5 by using CTRL-H and replace all
+// `25h9` phrase with `16h5`. `36h*` will not work due to memory
+// limitation.
 #include "apriltag.h"
-#include "tag16h5.h"
+#include "tag25h9.h"
 #include "common/image_u8.h"
 #include "common/zarray.h"
 
@@ -66,9 +70,6 @@ void setup() {
   // Show some signs of life
 #if DEBUG >= 1
   Serial.println("AprilTag detector demo on ESP32-CAM");
-  Serial.println("Created by gvl610");
-  Serial.println("Based on https://github.com/AprilRobotics/apriltag");
-  Serial.println("with some modifications (for adaption and performance)");
   Serial.print("Init PSRAM... ");
 #endif
 
@@ -107,12 +108,12 @@ void setup() {
   config.xclk_freq_hz = 20000000;
 
   // Set frame config
-  config.frame_size = FRAMESIZE_HVGA;
+  config.frame_size = FRAMESIZE_VGA;
   config.pixel_format = PIXFORMAT_GRAYSCALE; // Required for AprilTag processing
-  config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
+  config.grab_mode = CAMERA_GRAB_LATEST; // Has to be in this mode, or detection will be lag
   config.fb_location = CAMERA_FB_IN_PSRAM;
-  config.jpeg_quality = 12;
-  config.fb_count = 1;
+  //config.jpeg_quality = 12;
+  config.fb_count = 1; // Can't afford (and also not needed) to have 2
 
 #if defined(CAMERA_MODEL_ESP_EYE)
   pinMode(13, INPUT_PULLUP);
@@ -153,7 +154,26 @@ void setup() {
 #endif
 
   // Custom camera configs should go here
-  //s->set_framesize(s, FRAMESIZE_QVGA);
+  s->set_brightness(s, 0);     // -2 to 2
+  s->set_contrast(s, 0);       // -2 to 2
+  s->set_saturation(s, 0);     // -2 to 2
+  s->set_whitebal(s, 1);       // 0 = disable , 1 = enable
+  s->set_awb_gain(s, 1);       // 0 = disable , 1 = enable
+  s->set_wb_mode(s, 0);        // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
+  s->set_exposure_ctrl(s, 1);  // 0 = disable , 1 = enable
+  s->set_aec2(s, 1);           // 0 = disable , 1 = enable
+  s->set_ae_level(s, 0);       // -2 to 2
+  s->set_aec_value(s, 168);    // 0 to 1200
+  s->set_gain_ctrl(s, 1);      // 0 = disable , 1 = enable
+  s->set_agc_gain(s, 0);       // 0 to 30
+  s->set_gainceiling(s, (gainceiling_t)0);  // 0 to 6
+  s->set_bpc(s, 0);            // 0 = disable , 1 = enable
+  s->set_wpc(s, 1);            // 0 = disable , 1 = enable
+  s->set_raw_gma(s, 1);        // 0 = disable , 1 = enable
+  s->set_lenc(s, 1);           // 0 = disable , 1 = enable
+  s->set_hmirror(s, 1);        // 0 = disable , 1 = enable
+  s->set_vflip(s, 1);          // 0 = disable , 1 = enable
+  s->set_dcw(s, 1);            // 0 = disable , 1 = enable
 
   // Done init camera
 #if DEBUG >= 1
@@ -168,7 +188,7 @@ void setup() {
 #endif
 
   // Create tag family object
-  apriltag_family_t *tf = tag16h5_create();
+  apriltag_family_t *tf = tag25h9_create();
 
   // Create AprilTag detector object
   apriltag_detector_t *td = apriltag_detector_create();
@@ -182,7 +202,7 @@ void setup() {
   //                big number = slower but can detect small tags (or tag far away)
   // With quad_sigma = 1.0 and quad_decimate = 4.0, ESP32-CAM can detect 16h5 tag
   // from the distance of about 1 meter (tested with tag on screen. not on paper)
-  td->quad_sigma = 1.0;
+  td->quad_sigma = 0.0;
   td->quad_decimate = 4.0;
   td->refine_edges = 0;
   td->decode_sharpening = 0;
