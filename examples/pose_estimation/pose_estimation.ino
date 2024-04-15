@@ -9,16 +9,16 @@
 // Tag size (in meter). See original AprilTag readme for how to measure
 // You have to put your value here. This value is of NO standard and
 // is just my own tag size.
-#define TAG_SIZE 0.11
+#define TAG_SIZE 0.05
 
 // Camera calibration data
 // This information is obtained by calibrating your camera using software like 3DF Zephyr
 // You have to calibrate and put your own values here, this value is just for my camera
 // and likely not work on your camera.
-#define FX 726.895440715 // fx (in pixel)
-#define FY 726.895440715 // fy (in pixel)
-#define CX 300.447935937 // cx (in pixel)
-#define CY 258.723672207 // cy (in pixel)
+#define FX 924.713610878 // fx (in pixel)
+#define FY 924.713610878 // fy (in pixel)
+#define CX 403.801748132 // cx (in pixel)
+#define CY 305.082642826 // cy (in pixel)
 
 // Define CAP_TO_SD to log image to SD card (for debugging)
 // This will output raw 1bpp files and then you can use
@@ -84,7 +84,7 @@
  * Level 2: Low level debug messages
  * Level 3: Debug messages that in a loop
  */
-#define DEBUG 3
+#define DEBUG 2
 
 void setup() {
   // Init serial
