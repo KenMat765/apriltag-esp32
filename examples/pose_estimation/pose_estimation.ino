@@ -9,7 +9,7 @@
 // Tag size (in meter). See original AprilTag readme for how to measure
 // You have to put your value here. This value is of NO standard and
 // is just my own tag size.
-#define TAG_SIZE 0.09
+#define TAG_SIZE 0.05
 
 // Camera calibration data
 // This information is obtained by calibrating your camera using software like 3DF Zephyr
@@ -65,12 +65,12 @@
 #endif
 
 // Apriltag headers
-// We choose 25h9 family to use in this demo, but 16h5 family also
-// works. You can change to 16h5 by using CTRL-H and replace all
-// `25h9` phrase with `16h5`. `36h*` will not work due to memory
-// limitation.
+// We choose 36h11 family to use in this demo, but you can use
+// any family of your choice. Note that due to memory limitation,
+// you might have to reduce the number of tag in `codedata` array
+// in the tag family source file.
 #include "apriltag.h"
-#include "tag25h9.h" // Tag family. You can change
+#include "tag36h11.h" // Tag family. You can change
 #include "common/image_u8.h"
 #include "common/zarray.h"
 #include "apriltag_pose.h" // For pose estimation
@@ -266,7 +266,7 @@ void setup() {
 #endif
 
   // Create tag family object
-  apriltag_family_t *tf = tag25h9_create();
+  apriltag_family_t *tf = tag36h11_create();
 
   // Create AprilTag detector object
   apriltag_detector_t *td = apriltag_detector_create();
