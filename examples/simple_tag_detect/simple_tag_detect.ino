@@ -366,7 +366,7 @@ void setup() {
     // And frame count (if CAP_TO_SD defined)
     float t =  timeprofile_total_utime(td->tp) / 1.0E3;
 #ifdef CAP_TO_SD
-    Serial.printf("t, id: %12.3f, %zu\n", t, frame_id);
+    Serial.printf("t, id: %12.3f, %zu\n", t, frame_id - 1);
 #else
     Serial.printf("t: %12.3f\n", t);
 #endif

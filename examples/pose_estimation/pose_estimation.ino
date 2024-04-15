@@ -9,7 +9,7 @@
 // Tag size (in meter). See original AprilTag readme for how to measure
 // You have to put your value here. This value is of NO standard and
 // is just my own tag size.
-#define TAG_SIZE 0.05
+#define TAG_SIZE 0.11
 
 // Camera calibration data
 // This information is obtained by calibrating your camera using software like 3DF Zephyr
@@ -84,7 +84,7 @@
  * Level 2: Low level debug messages
  * Level 3: Debug messages that in a loop
  */
-#define DEBUG 2
+#define DEBUG 3
 
 void setup() {
   // Init serial
@@ -134,7 +134,7 @@ void setup() {
   config.xclk_freq_hz = 20000000;
 
   // Set frame config
-  config.frame_size = FRAMESIZE_VGA;
+  config.frame_size = FRAMESIZE_SVGA; // You can change the resolution to fit your need
   config.pixel_format = PIXFORMAT_GRAYSCALE; // Required for AprilTag processing
   config.grab_mode = CAMERA_GRAB_LATEST; // Has to be in this mode, or detection will be lag
   config.fb_location = CAMERA_FB_IN_PSRAM;
@@ -212,10 +212,6 @@ void setup() {
 #ifdef CAP_TO_SD
 #if DEBUG >= 1
   Serial.print("Init SD card... ");
-
-  // Turns off the ESP32-CAM white on-board LED (flash) connected to GPIO 4
-  pinMode(4, OUTPUT);
-  digitalWrite(4, LOW);
 #endif
 
   // Mount SD card
@@ -278,13 +274,11 @@ void setup() {
   // quad_sigma is Gaussian blur's sigma
   // quad_decimate: small number = faster but cannot detect small tags
   //                big number = slower but can detect small tags (or tag far away)
-  // With quad_sigma = 1.0 and quad_decimate = 4.0, ESP32-CAM can detect 16h5 tag
-  // from the distance of about 1 meter (tested with tag on screen. not on paper)
   td->quad_sigma = 0.0;
   td->quad_decimate = 4.0;
   td->refine_edges = 0;
-  td->decode_sharpening = 0;
-  td->nthreads = 1;
+  td->decode_sharpening = 0.25;
+  td->nthreads = 2; // The optimal (after many tries) is 2 thread on 2 cores ESP32
   td->debug = 0;
 
   // Done init AprilTag detector
@@ -403,7 +397,7 @@ void setup() {
     // And frame count (if CAP_TO_SD defined)
     float t =  timeprofile_total_utime(td->tp) / 1.0E3;
 #ifdef CAP_TO_SD
-    Serial.printf("t, id: %12.3f, %zu\n", t, frame_id);
+    Serial.printf("t, id: %12.3f, %zu\n", t, frame_id - 1);
 #else
     Serial.printf("t: %12.3f\n", t);
 #endif
