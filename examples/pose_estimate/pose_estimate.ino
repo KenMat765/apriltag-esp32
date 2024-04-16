@@ -74,6 +74,7 @@
 #include "common/image_u8.h"
 #include "common/zarray.h"
 #include "apriltag_pose.h" // For pose estimation
+#include "common/matd.h"
 
 /*
  * Define this macro to enable debug mode
@@ -374,12 +375,34 @@ void setup() {
       apriltag_pose_t pose;
       double err = estimate_tag_pose(&info, &pose);
       
-      // Print result
-      matd_print(pose.R, "%15f"); // Rotation matrix
-      matd_print(pose.t, "%15f"); // Translation matrix
+      // Print result (position of the tag in the camera's coordinate system)
+      //matd_print(pose.R, "%15f"); // Rotation matrix
+      //matd_print(pose.t, "%15f"); // Translation matrix
+
+      // Compute the yaw, pitch, and roll from the rotation matrix (and convert to degree)
+      double yaw = atan2(MATD_EL(pose.R, 1, 0), MATD_EL(pose.R, 0, 0)) * RAD_TO_DEG;
+      double pitch = atan2(-MATD_EL(pose.R, 2, 0), sqrt(pow(MATD_EL(pose.R, 2, 1), 2) + pow(MATD_EL(pose.R, 2, 2), 2))) * RAD_TO_DEG;
+      double roll = atan2(MATD_EL(pose.R, 2, 1), MATD_EL(pose.R, 2, 2)) * RAD_TO_DEG;
+
+      // Print the yaw, pitch, and roll of the camera
+      printf("y,p,r: %15f, %15f, %15f\n", yaw, pitch, roll);
+      
+      // Compute the transpose of the rotation matrix
+      matd_t *R_transpose = matd_transpose(pose.R);
+
+      // Negate the translation vector
+      for (int i = 0; i < pose.t->nrows; i++) {
+          MATD_EL(pose.t, i, 0) = -MATD_EL(pose.t, i, 0);
+      }
+
+      // Compute the position of the camera in the tag's coordinate system
+      matd_t *camera_position = matd_multiply(R_transpose, pose.t);
+      printf("x,y,z: %15f, %15f, %15f\n", MATD_EL(camera_position, 0, 0), MATD_EL(camera_position, 1, 0), MATD_EL(camera_position, 2, 0));
+
+      // Free the matrices
+      matd_destroy(R_transpose);
+      matd_destroy(camera_position);
     }
-    
-    Serial.println("");
 
     // Cleaning up
 #if DEBUG >= 3
