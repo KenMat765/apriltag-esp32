@@ -85,7 +85,7 @@ B3/B0 = tan(P-T)
 
 B2/B1 = tan(P+T)
  **/
-void svd22(const float A[4], float U[4], float S[2], float V[4])
+void IRAM_ATTR svd22(const float A[4], float U[4], float S[2], float V[4])
 {
     float A00 = A[0];
     float A01 = A[1];
@@ -215,7 +215,7 @@ void svd22(const float A[4], float U[4], float S[2], float V[4])
 
 
 // for the matrix [a b; b d]
-void svd_sym_singular_values(float A00, float A01, float A11,
+void IRAM_ATTR svd_sym_singular_values(float A00, float A01, float A11,
                              float *Lmin, float *Lmax)
 {
     float A10 = A01;

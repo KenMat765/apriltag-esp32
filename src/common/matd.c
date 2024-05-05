@@ -43,7 +43,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 // to ease creating mati, matf, etc. in the future.
 #define TYPE float
 
-matd_t *matd_create(int rows, int cols)
+matd_t IRAM_ATTR *matd_create(int rows, int cols)
 {
     assert(rows >= 0);
     assert(cols >= 0);
@@ -58,7 +58,7 @@ matd_t *matd_create(int rows, int cols)
     return m;
 }
 
-matd_t *matd_create_scalar(TYPE v)
+matd_t IRAM_ATTR *matd_create_scalar(TYPE v)
 {
     matd_t *m = calloc(1, sizeof(matd_t) + sizeof(float));
     m->nrows = 0;
@@ -68,7 +68,7 @@ matd_t *matd_create_scalar(TYPE v)
     return m;
 }
 
-matd_t *matd_create_data(int rows, int cols, const TYPE *data)
+matd_t IRAM_ATTR *matd_create_data(int rows, int cols, const TYPE *data)
 {
     if (rows == 0 || cols == 0)
         return matd_create_scalar(data[0]);
@@ -80,7 +80,7 @@ matd_t *matd_create_data(int rows, int cols, const TYPE *data)
     return m;
 }
 
-matd_t *matd_create_dataf(int rows, int cols, const float *data)
+matd_t IRAM_ATTR *matd_create_dataf(int rows, int cols, const float *data)
 {
     if (rows == 0 || cols == 0)
         return matd_create_scalar(data[0]);
@@ -92,7 +92,7 @@ matd_t *matd_create_dataf(int rows, int cols, const float *data)
     return m;
 }
 
-matd_t *matd_identity(int dim)
+matd_t IRAM_ATTR *matd_identity(int dim)
 {
     if (dim == 0)
         return matd_create_scalar(1);
@@ -105,7 +105,7 @@ matd_t *matd_identity(int dim)
 }
 
 // row and col are zero-based
-TYPE matd_get(const matd_t *m, unsigned int row, unsigned int col)
+TYPE IRAM_ATTR matd_get(const matd_t *m, unsigned int row, unsigned int col)
 {
     assert(m != NULL);
     assert(!matd_is_scalar(m));
@@ -116,7 +116,7 @@ TYPE matd_get(const matd_t *m, unsigned int row, unsigned int col)
 }
 
 // row and col are zero-based
-void matd_put(matd_t *m, unsigned int row, unsigned int col, TYPE value)
+void IRAM_ATTR matd_put(matd_t *m, unsigned int row, unsigned int col, TYPE value)
 {
     assert(m != NULL);
 
@@ -131,7 +131,7 @@ void matd_put(matd_t *m, unsigned int row, unsigned int col, TYPE value)
     MATD_EL(m, row, col) = value;
 }
 
-TYPE matd_get_scalar(const matd_t *m)
+TYPE IRAM_ATTR matd_get_scalar(const matd_t *m)
 {
     assert(m != NULL);
     assert(matd_is_scalar(m));
@@ -139,7 +139,7 @@ TYPE matd_get_scalar(const matd_t *m)
     return (m->data[0]);
 }
 
-void matd_put_scalar(matd_t *m, TYPE value)
+void IRAM_ATTR matd_put_scalar(matd_t *m, TYPE value)
 {
     assert(m != NULL);
     assert(matd_is_scalar(m));
@@ -147,7 +147,7 @@ void matd_put_scalar(matd_t *m, TYPE value)
     m->data[0] = value;
 }
 
-matd_t *matd_copy(const matd_t *m)
+matd_t IRAM_ATTR *matd_copy(const matd_t *m)
 {
     assert(m != NULL);
 
@@ -160,7 +160,7 @@ matd_t *matd_copy(const matd_t *m)
     return x;
 }
 
-matd_t *matd_select(const matd_t * a, unsigned int r0, int r1, unsigned int c0, int c1)
+matd_t IRAM_ATTR *matd_select(const matd_t * a, unsigned int r0, int r1, unsigned int c0, int c1)
 {
     assert(a != NULL);
 
@@ -179,7 +179,7 @@ matd_t *matd_select(const matd_t * a, unsigned int r0, int r1, unsigned int c0, 
     return r;
 }
 
-void matd_print(const matd_t *m, const char *fmt)
+void IRAM_ATTR matd_print(const matd_t *m, const char *fmt)
 {
     assert(m != NULL);
     assert(fmt != NULL);
@@ -197,7 +197,7 @@ void matd_print(const matd_t *m, const char *fmt)
     }
 }
 
-void matd_print_transpose(const matd_t *m, const char *fmt)
+void IRAM_ATTR matd_print_transpose(const matd_t *m, const char *fmt)
 {
     assert(m != NULL);
     assert(fmt != NULL);
@@ -215,7 +215,7 @@ void matd_print_transpose(const matd_t *m, const char *fmt)
     }
 }
 
-void matd_destroy(matd_t *m)
+void IRAM_ATTR matd_destroy(matd_t *m)
 {
     if (!m)
         return;
@@ -224,7 +224,7 @@ void matd_destroy(matd_t *m)
     free(m);
 }
 
-matd_t *matd_multiply(const matd_t *a, const matd_t *b)
+matd_t IRAM_ATTR *matd_multiply(const matd_t *a, const matd_t *b)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -250,7 +250,7 @@ matd_t *matd_multiply(const matd_t *a, const matd_t *b)
     return m;
 }
 
-matd_t *matd_scale(const matd_t *a, float s)
+matd_t IRAM_ATTR *matd_scale(const matd_t *a, float s)
 {
     assert(a != NULL);
 
@@ -268,7 +268,7 @@ matd_t *matd_scale(const matd_t *a, float s)
     return m;
 }
 
-void matd_scale_inplace(matd_t *a, float s)
+void IRAM_ATTR matd_scale_inplace(matd_t *a, float s)
 {
     assert(a != NULL);
 
@@ -284,7 +284,7 @@ void matd_scale_inplace(matd_t *a, float s)
     }
 }
 
-matd_t *matd_add(const matd_t *a, const matd_t *b)
+matd_t IRAM_ATTR *matd_add(const matd_t *a, const matd_t *b)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -305,7 +305,7 @@ matd_t *matd_add(const matd_t *a, const matd_t *b)
     return m;
 }
 
-void matd_add_inplace(matd_t *a, const matd_t *b)
+void IRAM_ATTR matd_add_inplace(matd_t *a, const matd_t *b)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -325,7 +325,7 @@ void matd_add_inplace(matd_t *a, const matd_t *b)
 }
 
 
-matd_t *matd_subtract(const matd_t *a, const matd_t *b)
+matd_t IRAM_ATTR *matd_subtract(const matd_t *a, const matd_t *b)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -346,7 +346,7 @@ matd_t *matd_subtract(const matd_t *a, const matd_t *b)
     return m;
 }
 
-void matd_subtract_inplace(matd_t *a, const matd_t *b)
+void IRAM_ATTR matd_subtract_inplace(matd_t *a, const matd_t *b)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -366,7 +366,7 @@ void matd_subtract_inplace(matd_t *a, const matd_t *b)
 }
 
 
-matd_t *matd_transpose(const matd_t *a)
+matd_t IRAM_ATTR *matd_transpose(const matd_t *a)
 {
     assert(a != NULL);
 
@@ -384,7 +384,7 @@ matd_t *matd_transpose(const matd_t *a)
 }
 
 static
-float matd_det_general(const matd_t *a)
+float IRAM_ATTR matd_det_general(const matd_t *a)
 {
     // Use LU decompositon to calculate the determinant
     matd_plu_t *mlu = matd_plu(a);
@@ -414,7 +414,7 @@ float matd_det_general(const matd_t *a)
     return det;
 }
 
-float matd_det(const matd_t *a)
+float IRAM_ATTR matd_det(const matd_t *a)
 {
     assert(a != NULL);
     assert(a->nrows == a->ncols);
@@ -474,7 +474,7 @@ float matd_det(const matd_t *a)
 // returns NULL if the matrix is (exactly) singular. Caller is
 // otherwise responsible for knowing how to cope with badly
 // conditioned matrices.
-matd_t *matd_inverse(const matd_t *x)
+matd_t IRAM_ATTR *matd_inverse(const matd_t *x)
 {
     matd_t *m = NULL;
 
@@ -545,7 +545,7 @@ matd_t *matd_inverse(const matd_t *x)
 // handle right-associative operators, greedily consuming them. These
 // include transpose and inverse. This is called by the main recursion
 // method.
-static inline matd_t *matd_op_gobble_right(const char *expr, int *pos, matd_t *acc, matd_t **garb, int *garbpos)
+static inline matd_t IRAM_ATTR *matd_op_gobble_right(const char *expr, int *pos, matd_t *acc, matd_t **garb, int *garbpos)
 {
     while (expr[*pos] != 0) {
 
@@ -587,7 +587,7 @@ static inline matd_t *matd_op_gobble_right(const char *expr, int *pos, matd_t *a
 
 // @garb, garbpos  A list of every matrix allocated during evaluation... used to assist cleanup.
 // @oneterm: we should return at the end of this term (i.e., stop at a PLUS, MINUS, LPAREN).
-static matd_t *matd_op_recurse(const char *expr, int *pos, matd_t *acc, matd_t **args, int *argpos,
+static matd_t IRAM_ATTR *matd_op_recurse(const char *expr, int *pos, matd_t *acc, matd_t **args, int *argpos,
                                matd_t **garb, int *garbpos, int oneterm)
 {
     while (expr[*pos] != 0) {
@@ -787,7 +787,7 @@ static matd_t *matd_op_recurse(const char *expr, int *pos, matd_t *acc, matd_t *
 }
 
 // always returns a new matrix.
-matd_t *matd_op(const char *expr, ...)
+matd_t IRAM_ATTR *matd_op(const char *expr, ...)
 {
     int nargs = 0;
     int exprlen = 0;
@@ -839,7 +839,7 @@ matd_t *matd_op(const char *expr, ...)
     return res_copy;
 }
 
-float matd_vec_mag(const matd_t *a)
+float IRAM_ATTR matd_vec_mag(const matd_t *a)
 {
     assert(a != NULL);
     assert(matd_is_vector(a));
@@ -851,7 +851,7 @@ float matd_vec_mag(const matd_t *a)
     return sqrt(mag);
 }
 
-float matd_vec_dist(const matd_t *a, const matd_t *b)
+float IRAM_ATTR matd_vec_dist(const matd_t *a, const matd_t *b)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -862,7 +862,7 @@ float matd_vec_dist(const matd_t *a, const matd_t *b)
     return matd_vec_dist_n(a, b, lena);
 }
 
-float matd_vec_dist_n(const matd_t *a, const matd_t *b, int n)
+float IRAM_ATTR matd_vec_dist_n(const matd_t *a, const matd_t *b, int n)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -882,7 +882,7 @@ float matd_vec_dist_n(const matd_t *a, const matd_t *b, int n)
 }
 
 // find the index of the off-diagonal element with the largest mag
-static inline int max_idx(const matd_t *A, int row, int maxcol)
+static inline int IRAM_ATTR max_idx(const matd_t *A, int row, int maxcol)
 {
     int maxi = 0;
     float maxv = -1;
@@ -900,7 +900,7 @@ static inline int max_idx(const matd_t *A, int row, int maxcol)
     return maxi;
 }
 
-float matd_vec_dot_product(const matd_t *a, const matd_t *b)
+float IRAM_ATTR matd_vec_dot_product(const matd_t *a, const matd_t *b)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -918,7 +918,7 @@ float matd_vec_dot_product(const matd_t *a, const matd_t *b)
 }
 
 
-matd_t *matd_vec_normalize(const matd_t *a)
+matd_t IRAM_ATTR *matd_vec_normalize(const matd_t *a)
 {
     assert(a != NULL);
     assert(matd_is_vector(a));
@@ -935,7 +935,7 @@ matd_t *matd_vec_normalize(const matd_t *a)
     return b;
 }
 
-matd_t *matd_crossproduct(const matd_t *a, const matd_t *b)
+matd_t IRAM_ATTR *matd_crossproduct(const matd_t *a, const matd_t *b)
 { // only defined for vecs (col or row) of length 3
     assert(a != NULL);
     assert(b != NULL);
@@ -950,7 +950,7 @@ matd_t *matd_crossproduct(const matd_t *a, const matd_t *b)
     return r;
 }
 
-TYPE matd_err_inf(const matd_t *a, const matd_t *b)
+TYPE IRAM_ATTR matd_err_inf(const matd_t *a, const matd_t *b)
 {
     assert(a->nrows == b->nrows);
     assert(a->ncols == b->ncols);
@@ -975,7 +975,7 @@ TYPE matd_err_inf(const matd_t *a, const matd_t *b)
 // non-zero element too far to the right for us to rotate away.
 //
 // Caller is responsible for destroying U, S, and V.
-static matd_svd_t matd_svd_tall(matd_t *A, int flags)
+static matd_svd_t IRAM_ATTR matd_svd_tall(matd_t *A, int flags)
 {
     matd_t *B = matd_copy(A);
 
@@ -1455,12 +1455,12 @@ static matd_svd_t matd_svd_tall(matd_t *A, int flags)
     return res;
 }
 
-matd_svd_t matd_svd(matd_t *A)
+matd_svd_t IRAM_ATTR matd_svd(matd_t *A)
 {
     return matd_svd_flags(A, 0);
 }
 
-matd_svd_t matd_svd_flags(matd_t *A, int flags)
+matd_svd_t IRAM_ATTR matd_svd_flags(matd_t *A, int flags)
 {
     matd_svd_t res;
 
@@ -1508,7 +1508,7 @@ matd_svd_t matd_svd_flags(matd_t *A, int flags)
 }
 
 
-matd_plu_t *matd_plu(const matd_t *a)
+matd_plu_t IRAM_ATTR *matd_plu(const matd_t *a)
 {
     unsigned int *piv = calloc(a->nrows, sizeof(unsigned int));
     int pivsign = 1;
@@ -1588,7 +1588,7 @@ matd_plu_t *matd_plu(const matd_t *a)
     return mlu;
 }
 
-void matd_plu_destroy(matd_plu_t *mlu)
+void IRAM_ATTR matd_plu_destroy(matd_plu_t *mlu)
 {
     matd_destroy(mlu->lu);
     free(mlu->piv);
@@ -1596,7 +1596,7 @@ void matd_plu_destroy(matd_plu_t *mlu)
     free(mlu);
 }
 
-float matd_plu_det(const matd_plu_t *mlu)
+float IRAM_ATTR matd_plu_det(const matd_plu_t *mlu)
 {
     matd_t *lu = mlu->lu;
     float det = mlu->pivsign;
@@ -1609,7 +1609,7 @@ float matd_plu_det(const matd_plu_t *mlu)
     return det;
 }
 
-matd_t *matd_plu_p(const matd_plu_t *mlu)
+matd_t IRAM_ATTR *matd_plu_p(const matd_plu_t *mlu)
 {
     matd_t *lu = mlu->lu;
     matd_t *P = matd_create(lu->nrows, lu->nrows);
@@ -1621,7 +1621,7 @@ matd_t *matd_plu_p(const matd_plu_t *mlu)
     return P;
 }
 
-matd_t *matd_plu_l(const matd_plu_t *mlu)
+matd_t IRAM_ATTR *matd_plu_l(const matd_plu_t *mlu)
 {
     matd_t *lu = mlu->lu;
 
@@ -1637,7 +1637,7 @@ matd_t *matd_plu_l(const matd_plu_t *mlu)
     return L;
 }
 
-matd_t *matd_plu_u(const matd_plu_t *mlu)
+matd_t IRAM_ATTR *matd_plu_u(const matd_plu_t *mlu)
 {
     matd_t *lu = mlu->lu;
 
@@ -1656,7 +1656,7 @@ matd_t *matd_plu_u(const matd_plu_t *mlu)
 // Ax = B
 // PLUx = B
 // LUx = P'B
-matd_t *matd_plu_solve(const matd_plu_t *mlu, const matd_t *b)
+matd_t IRAM_ATTR *matd_plu_solve(const matd_plu_t *mlu, const matd_t *b)
 {
     matd_t *x = matd_copy(b);
 
@@ -1689,7 +1689,7 @@ matd_t *matd_plu_solve(const matd_plu_t *mlu, const matd_t *b)
     return x;
 }
 
-matd_t *matd_solve(matd_t *A, matd_t *b)
+matd_t IRAM_ATTR *matd_solve(matd_t *A, matd_t *b)
 {
     matd_plu_t *mlu = matd_plu(A);
     matd_t *x = matd_plu_solve(mlu, b);
@@ -1848,7 +1848,7 @@ int main(int argc, char *argv[])
 
 // NOTE: The below implementation of Cholesky is different from the one
 // used in NGV.
-matd_chol_t *matd_chol(matd_t *A)
+matd_chol_t IRAM_ATTR *matd_chol(matd_t *A)
 {
     assert(A->nrows == A->ncols);
     int N = A->nrows;
@@ -1895,14 +1895,14 @@ MATD_EL(U, i, j) = 0;
     return chol;
 }
 
-void matd_chol_destroy(matd_chol_t *chol)
+void IRAM_ATTR matd_chol_destroy(matd_chol_t *chol)
 {
     matd_destroy(chol->u);
     free(chol);
 }
 
 // Solve: (U')x = b, U is upper triangular
-void matd_ltransposetriangle_solve(matd_t *u, const TYPE *b, TYPE *x)
+void IRAM_ATTR matd_ltransposetriangle_solve(matd_t *u, const TYPE *b, TYPE *x)
 {
     int n = u->ncols;
     memcpy(x, b, n*sizeof(TYPE));
@@ -1916,7 +1916,7 @@ void matd_ltransposetriangle_solve(matd_t *u, const TYPE *b, TYPE *x)
 }
 
 // Solve: Lx = b, L is lower triangular
-void matd_ltriangle_solve(matd_t *L, const TYPE *b, TYPE *x)
+void IRAM_ATTR matd_ltriangle_solve(matd_t *L, const TYPE *b, TYPE *x)
 {
     int n = L->ncols;
 
@@ -1932,7 +1932,7 @@ void matd_ltriangle_solve(matd_t *L, const TYPE *b, TYPE *x)
 }
 
 // solve Ux = b, U is upper triangular
-void matd_utriangle_solve(matd_t *u, const TYPE *b, TYPE *x)
+void IRAM_ATTR matd_utriangle_solve(matd_t *u, const TYPE *b, TYPE *x)
 {
     for (int i = u->ncols-1; i >= 0; i--) {
         float bi = b[i];
@@ -1946,7 +1946,7 @@ void matd_utriangle_solve(matd_t *u, const TYPE *b, TYPE *x)
     }
 }
 
-matd_t *matd_chol_solve(const matd_chol_t *chol, const matd_t *b)
+matd_t IRAM_ATTR *matd_chol_solve(const matd_chol_t *chol, const matd_t *b)
 {
     matd_t *u = chol->u;
 
@@ -1998,7 +1998,7 @@ matd_t *matd_chol_solve(const matd_chol_t *chol, const matd_t *b)
 */
 // only sensible on PSD matrices. had expected it to be faster than
 // inverse via LU... for now, doesn't seem to be.
-matd_t *matd_chol_inverse(matd_t *a)
+matd_t IRAM_ATTR *matd_chol_inverse(matd_t *a)
 {
     assert(a->nrows == a->ncols);
 
@@ -2012,7 +2012,7 @@ matd_t *matd_chol_inverse(matd_t *a)
     return inv;
 }
 
-float matd_max(matd_t *m)
+float IRAM_ATTR matd_max(matd_t *m)
 {
     float d = -DBL_MAX;
     for(unsigned int x=0; x<m->nrows; x++) {

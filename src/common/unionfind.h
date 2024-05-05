@@ -31,6 +31,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stdint.h>
 #include <stdlib.h>
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 typedef struct unionfind unionfind_t;
 
 struct unionfind
@@ -44,7 +52,7 @@ struct unionfind
     uint32_t *size;
 };
 
-static inline unionfind_t *unionfind_create(uint32_t maxid)
+static inline unionfind_t IRAM_ATTR *unionfind_create(uint32_t maxid)
 {
     unionfind_t *uf = (unionfind_t*) calloc(1, sizeof(unionfind_t));
     uf->maxid = maxid;
@@ -55,7 +63,7 @@ static inline unionfind_t *unionfind_create(uint32_t maxid)
     return uf;
 }
 
-static inline void unionfind_destroy(unionfind_t *uf)
+static inline void IRAM_ATTR unionfind_destroy(unionfind_t *uf)
 {
     free(uf->parent);
     free(uf);
@@ -80,7 +88,7 @@ static inline uint32_t unionfind_get_representative(unionfind_t *uf, uint32_t id
 
 // this one seems to be every-so-slightly faster than the recursive
 // version above.
-static inline uint32_t unionfind_get_representative(unionfind_t *uf, uint32_t id)
+static inline uint32_t IRAM_ATTR unionfind_get_representative(unionfind_t *uf, uint32_t id)
 {
     uint32_t root = uf->parent[id];
     // unititialized node, so set to self
@@ -104,13 +112,13 @@ static inline uint32_t unionfind_get_representative(unionfind_t *uf, uint32_t id
     return root;
 }
 
-static inline uint32_t unionfind_get_set_size(unionfind_t *uf, uint32_t id)
+static inline uint32_t IRAM_ATTR unionfind_get_set_size(unionfind_t *uf, uint32_t id)
 {
     uint32_t repid = unionfind_get_representative(uf, id);
     return uf->size[repid] + 1;
 }
 
-static inline uint32_t unionfind_connect(unionfind_t *uf, uint32_t aid, uint32_t bid)
+static inline uint32_t IRAM_ATTR unionfind_connect(unionfind_t *uf, uint32_t aid, uint32_t bid)
 {
     uint32_t aroot = unionfind_get_representative(uf, aid);
     uint32_t broot = unionfind_get_representative(uf, bid);

@@ -44,6 +44,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "common/postscript_utils.h"
 #include "common/math_util.h"
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 #ifdef _WIN32
 static inline long int random(void)
 {
@@ -51,7 +59,7 @@ static inline long int random(void)
 }
 #endif
 
-static inline uint32_t u64hash_2(uint64_t x) {
+static inline uint32_t IRAM_ATTR u64hash_2(uint64_t x) {
     return (2654435761 * x) >> 32;
 }
 
@@ -172,7 +180,7 @@ struct cluster_hash
 //
 // fit a line to the points [i0, i1] (inclusive). i0, i1 are both [0,
 // sz) if i1 < i0, we treat this as a wrap around.
-void fit_line(struct line_fit_pt *lfps, int sz, int i0, int i1, float *lineparm, float *err, float *mse)
+void IRAM_ATTR fit_line(struct line_fit_pt *lfps, int sz, int i0, int i1, float *lineparm, float *err, float *mse)
 {
     assert(i0 != i1);
     assert(i0 >= 0 && i1 >= 0 && i0 < sz && i1 < sz);
@@ -292,11 +300,11 @@ void fit_line(struct line_fit_pt *lfps, int sz, int i0, int i1, float *lineparm,
         *mse = eig_small;
 }
 
-float pt_compare_angle(struct pt *a, struct pt *b) {
+float IRAM_ATTR pt_compare_angle(struct pt *a, struct pt *b) {
     return a->slope - b->slope;
 }
 
-int err_compare_descending(const void *_a, const void *_b)
+int IRAM_ATTR err_compare_descending(const void *_a, const void *_b)
 {
     const float *a =  _a;
     const float *b =  _b;
@@ -320,7 +328,7 @@ int err_compare_descending(const void *_a, const void *_b)
   rather than pairs of clusters.) Critically, this helps keep nearby
   edges from becoming connected.
 */
-int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_fit_pt *lfps, int indices[4])
+int IRAM_ATTR quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_fit_pt *lfps, int indices[4])
 {
     int sz = zarray_size(cluster);
 
@@ -504,7 +512,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
 }
 
 // returns 0 if the cluster looks bad.
-int quad_segment_agg(zarray_t *cluster, struct line_fit_pt *lfps, int indices[4])
+int IRAM_ATTR quad_segment_agg(zarray_t *cluster, struct line_fit_pt *lfps, int indices[4])
 {
     int sz = zarray_size(cluster);
 
@@ -618,7 +626,7 @@ int quad_segment_agg(zarray_t *cluster, struct line_fit_pt *lfps, int indices[4]
  * Compute statistics that allow line fit queries to be
  * efficiently computed for any contiguous range of indices.
  */
-struct line_fit_pt* compute_lfps(int sz, zarray_t* cluster, image_u8_t* im) {
+struct line_fit_pt* IRAM_ATTR compute_lfps(int sz, zarray_t* cluster, image_u8_t* im) {
     struct line_fit_pt *lfps = calloc(sz, sizeof(struct line_fit_pt));
 
     for (int i = 0; i < sz; i++) {
@@ -660,7 +668,7 @@ struct line_fit_pt* compute_lfps(int sz, zarray_t* cluster, image_u8_t* im) {
     return lfps;
 }
 
-static inline void ptsort(struct pt *pts, int sz)
+static inline void IRAM_ATTR ptsort(struct pt *pts, int sz)
 {
 #define MAYBE_SWAP(arr,apos,bpos)                                   \
     if (pt_compare_angle(&(arr[apos]), &(arr[bpos])) > 0) {                        \
@@ -755,7 +763,7 @@ static inline void ptsort(struct pt *pts, int sz)
 }
 
 // return 1 if the quad looks okay, 0 if it should be discarded
-int fit_quad(
+int IRAM_ATTR fit_quad(
         apriltag_detector_t *td,
         image_u8_t *im,
         zarray_t *cluster,
@@ -981,7 +989,7 @@ int fit_quad(
 
 #define DO_UNIONFIND2(dx, dy) if (im->buf[(y + dy)*s + x + dx] == v) unionfind_connect(uf, y*w + x, (y + dy)*w + x + dx);
 
-static void do_unionfind_first_line(unionfind_t *uf, image_u8_t *im, int w, int s)
+static void IRAM_ATTR do_unionfind_first_line(unionfind_t *uf, image_u8_t *im, int w, int s)
 {
     int y = 0;
     uint8_t v;
@@ -996,7 +1004,7 @@ static void do_unionfind_first_line(unionfind_t *uf, image_u8_t *im, int w, int 
     }
 }
 
-static void do_unionfind_line2(unionfind_t *uf, image_u8_t *im, int w, int s, int y)
+static void IRAM_ATTR do_unionfind_line2(unionfind_t *uf, image_u8_t *im, int w, int s, int y)
 {
     assert(y > 0);
 
@@ -1037,7 +1045,7 @@ static void do_unionfind_line2(unionfind_t *uf, image_u8_t *im, int w, int s, in
 }
 #undef DO_UNIONFIND2
 
-static void do_unionfind_task2(void *p)
+static void IRAM_ATTR do_unionfind_task2(void *p)
 {
     struct unionfind_task *task = (struct unionfind_task*) p;
 
@@ -1046,7 +1054,7 @@ static void do_unionfind_task2(void *p)
     }
 }
 
-static void do_quad_task(void *p)
+static void IRAM_ATTR do_quad_task(void *p)
 {
     struct quad_task *task = (struct quad_task*) p;
 
@@ -1084,7 +1092,7 @@ static void do_quad_task(void *p)
     }
 }
 
-void do_minmax_task(void *p)
+void IRAM_ATTR do_minmax_task(void *p)
 {
     const int tilesz = 4;
     struct minmax_task* task = (struct minmax_task*) p;
@@ -1113,7 +1121,7 @@ void do_minmax_task(void *p)
     }
 }
 
-void do_blur_task(void *p)
+void IRAM_ATTR do_blur_task(void *p)
 {
     const int tilesz = 4;
     struct blur_task* task = (struct blur_task*) p;
@@ -1147,7 +1155,7 @@ void do_blur_task(void *p)
     }
 }
 
-void do_threshold_task(void *p)
+void IRAM_ATTR do_threshold_task(void *p)
 {
     const int tilesz = 4;
     struct threshold_task* task = (struct threshold_task*) p;
@@ -1200,7 +1208,7 @@ void do_threshold_task(void *p)
     }
 }
  
-image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
+image_u8_t IRAM_ATTR *threshold(apriltag_detector_t *td, image_u8_t *im)
 {
     int w = im->width, h = im->height, s = im->stride;
     assert(w < 32768);
@@ -1379,7 +1387,7 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
 // basically the same as threshold(), but assumes the input image is a
 // bayer image. It collects statistics separately for each 2x2 block
 // of pixels. NOT WELL TESTED.
-image_u8_t *threshold_bayer(apriltag_detector_t *td, image_u8_t *im)
+image_u8_t IRAM_ATTR *threshold_bayer(apriltag_detector_t *td, image_u8_t *im)
 {
     int w = im->width, h = im->height, s = im->stride;
 
@@ -1495,7 +1503,7 @@ image_u8_t *threshold_bayer(apriltag_detector_t *td, image_u8_t *im)
     return threshim;
 }
 
-unionfind_t* connected_components(apriltag_detector_t *td, image_u8_t* threshim, int w, int h, int ts) {
+unionfind_t* IRAM_ATTR connected_components(apriltag_detector_t *td, image_u8_t* threshim, int w, int h, int ts) {
     unionfind_t *uf = unionfind_create(w * h);
 
     if (td->nthreads <= 1) {
@@ -1542,7 +1550,7 @@ unionfind_t* connected_components(apriltag_detector_t *td, image_u8_t* threshim,
     return uf;
 }
 
-zarray_t* do_gradient_clusters(image_u8_t* threshim, int ts, int y0, int y1, int w, int nclustermap, unionfind_t* uf, zarray_t* clusters) {
+zarray_t* IRAM_ATTR do_gradient_clusters(image_u8_t* threshim, int ts, int y0, int y1, int w, int nclustermap, unionfind_t* uf, zarray_t* clusters) {
     struct uint64_zarray_entry **clustermap = calloc(nclustermap, sizeof(struct uint64_zarray_entry*));
 
     int mem_chunk_size = 2048;
@@ -1686,14 +1694,14 @@ zarray_t* do_gradient_clusters(image_u8_t* threshim, int ts, int y0, int y1, int
     return clusters;
 }
 
-static void do_cluster_task(void *p)
+static void IRAM_ATTR do_cluster_task(void *p)
 {
     struct cluster_task *task = (struct cluster_task*) p;
 
     do_gradient_clusters(task->im, task->s, task->y0, task->y1, task->w, task->nclustermap, task->uf, task->clusters);
 }
 
-zarray_t* merge_clusters(zarray_t* c1, zarray_t* c2) {
+zarray_t* IRAM_ATTR merge_clusters(zarray_t* c1, zarray_t* c2) {
     zarray_t* ret = zarray_create(sizeof(struct cluster_hash*));
     zarray_ensure_capacity(ret, zarray_size(c1) + zarray_size(c2));
 
@@ -1733,7 +1741,7 @@ zarray_t* merge_clusters(zarray_t* c1, zarray_t* c2) {
     return ret;
 }
 
-zarray_t* gradient_clusters(apriltag_detector_t *td, image_u8_t* threshim, int w, int h, int ts, unionfind_t* uf) {
+zarray_t* IRAM_ATTR gradient_clusters(apriltag_detector_t *td, image_u8_t* threshim, int w, int h, int ts, unionfind_t* uf) {
     zarray_t* clusters;
     int nclustermap = 0.2*w*h;
 
@@ -1795,7 +1803,7 @@ zarray_t* gradient_clusters(apriltag_detector_t *td, image_u8_t* threshim, int w
     return clusters;
 }
 
-zarray_t* fit_quads(apriltag_detector_t *td, int w, int h, zarray_t* clusters, image_u8_t* im) {
+zarray_t* IRAM_ATTR fit_quads(apriltag_detector_t *td, int w, int h, zarray_t* clusters, image_u8_t* im) {
     zarray_t *quads = zarray_create(sizeof(struct quad));
 
     bool normal_border = false;
@@ -1844,7 +1852,7 @@ zarray_t* fit_quads(apriltag_detector_t *td, int w, int h, zarray_t* clusters, i
     return quads;
 }
 
-zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
+zarray_t IRAM_ATTR *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
 {
     ////////////////////////////////////////////////////////
     // step 1. threshold the image, creating the edge image.

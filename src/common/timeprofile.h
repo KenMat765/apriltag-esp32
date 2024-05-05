@@ -27,6 +27,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #pragma once
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -51,7 +59,7 @@ struct timeprofile
     zarray_t *stamps;
 };
 
-static inline timeprofile_t *timeprofile_create()
+static inline timeprofile_t IRAM_ATTR *timeprofile_create()
 {
     timeprofile_t *tp = (timeprofile_t*) calloc(1, sizeof(timeprofile_t));
     tp->stamps = zarray_create(sizeof(struct timeprofile_entry));
@@ -61,19 +69,19 @@ static inline timeprofile_t *timeprofile_create()
     return tp;
 }
 
-static inline void timeprofile_destroy(timeprofile_t *tp)
+static inline void IRAM_ATTR timeprofile_destroy(timeprofile_t *tp)
 {
     zarray_destroy(tp->stamps);
     free(tp);
 }
 
-static inline void timeprofile_clear(timeprofile_t *tp)
+static inline void IRAM_ATTR timeprofile_clear(timeprofile_t *tp)
 {
     zarray_clear(tp->stamps);
     tp->utime = utime_now();
 }
 
-static inline void timeprofile_stamp(timeprofile_t *tp, const char *name)
+static inline void IRAM_ATTR timeprofile_stamp(timeprofile_t *tp, const char *name)
 {
     struct timeprofile_entry tpe;
 
@@ -84,7 +92,7 @@ static inline void timeprofile_stamp(timeprofile_t *tp, const char *name)
     zarray_add(tp->stamps, &tpe);
 }
 
-static inline void timeprofile_display(timeprofile_t *tp)
+static inline void IRAM_ATTR timeprofile_display(timeprofile_t *tp)
 {
     int64_t lastutime = tp->utime;
 
@@ -103,7 +111,7 @@ static inline void timeprofile_display(timeprofile_t *tp)
     }
 }
 
-static inline uint64_t timeprofile_total_utime(timeprofile_t *tp)
+static inline uint64_t IRAM_ATTR timeprofile_total_utime(timeprofile_t *tp)
 {
     if (zarray_size(tp->stamps) == 0)
         return 0;

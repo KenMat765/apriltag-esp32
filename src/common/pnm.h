@@ -29,6 +29,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include <stdint.h>
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -50,8 +58,8 @@ struct pnm
     uint8_t *buf; // if max=65535, in big endian
 };
 
-pnm_t *pnm_create_from_file(const char *path);
-void pnm_destroy(pnm_t *pnm);
+pnm_t IRAM_ATTR *pnm_create_from_file(const char *path);
+void IRAM_ATTR pnm_destroy(pnm_t *pnm);
 
 #ifdef __cplusplus
 }

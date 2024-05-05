@@ -85,7 +85,7 @@
  * Level 2: Low level debug messages
  * Level 3: Debug messages that in a loop
  */
-#define DEBUG 2
+#define DEBUG 0
 
 void setup() {
   // Init serial
@@ -269,7 +269,7 @@ void setup() {
   apriltag_detector_t *td = apriltag_detector_create();
 
   // Add tag family to the detector
-  apriltag_detector_add_family_bits(td, tf, 1);
+  apriltag_detector_add_family(td, tf);
   
   // Tag detector configs
   // quad_sigma is Gaussian blur's sigma
@@ -357,11 +357,6 @@ void setup() {
       apriltag_detection_t *det;
       zarray_get(detections, i, &det);
 
-      // Print tag ID
-      Serial.print("ID: ");
-      Serial.println(det->id);
-      Serial.printf("");
-
       // Creating detection info object to feed into pose estimator
       apriltag_detection_info_t info;
       info.det = det;
@@ -374,6 +369,9 @@ void setup() {
       // Estimate the pose
       apriltag_pose_t pose;
       double err = estimate_tag_pose(&info, &pose);
+
+      // Print tag ID and decision margin
+      printf("[DET]%d,%f,", det->id, det->decision_margin);
       
       // Print result (position of the tag in the camera's coordinate system)
       //matd_print(pose.R, "%15f"); // Rotation matrix
@@ -385,7 +383,7 @@ void setup() {
       double roll = atan2(MATD_EL(pose.R, 2, 1), MATD_EL(pose.R, 2, 2)) * RAD_TO_DEG;
 
       // Print the yaw, pitch, and roll of the camera
-      printf("y,p,r: %15f, %15f, %15f\n", yaw, pitch, roll);
+      printf("%f,%f,%f,", yaw, pitch, roll);
       
       // Compute the transpose of the rotation matrix
       matd_t *R_transpose = matd_transpose(pose.R);
@@ -397,7 +395,7 @@ void setup() {
 
       // Compute the position of the camera in the tag's coordinate system
       matd_t *camera_position = matd_multiply(R_transpose, pose.t);
-      printf("x,y,z: %15f, %15f, %15f\n", MATD_EL(camera_position, 0, 0), MATD_EL(camera_position, 1, 0), MATD_EL(camera_position, 2, 0));
+      printf("%f,%f,%f\n", MATD_EL(camera_position, 0, 0), MATD_EL(camera_position, 1, 0), MATD_EL(camera_position, 2, 0));
 
       // Free the matrices
       matd_destroy(R_transpose);
@@ -419,10 +417,12 @@ void setup() {
     // Display time needed per frame
     // And frame count (if CAP_TO_SD defined)
     float t =  timeprofile_total_utime(td->tp) / 1.0E3;
+#if DEBUG >= 2
 #ifdef CAP_TO_SD
     Serial.printf("t, id: %12.3f, %zu\n", t, frame_id - 1);
 #else
     Serial.printf("t: %12.3f\n", t);
+#endif
 #endif
   }
 }

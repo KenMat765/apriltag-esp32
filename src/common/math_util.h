@@ -33,6 +33,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stdint.h>
 #include <assert.h>
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -48,45 +56,45 @@ static inline int dequals(float a, float b)
 }
   */
 
-static inline int dequals_mag(float a, float b, float thresh)
+static inline int IRAM_ATTR dequals_mag(float a, float b, float thresh)
 {
     return (fabs(a-b) < thresh);
 }
 
-static inline int isq(int v)
+static inline int IRAM_ATTR isq(int v)
 {
     return v*v;
 }
 
-static inline float fsq(float v)
+static inline float IRAM_ATTR fsq(float v)
 {
     return v*v;
 }
 
-static inline float sq(float v)
+static inline float IRAM_ATTR sq(float v)
 {
     return v*v;
 }
 
-static inline float sgn(float v)
+static inline float IRAM_ATTR sgn(float v)
 {
     return (v>=0) ? 1 : -1;
 }
 
 // random number between [0, 1)
-static inline float randf()
+static inline float IRAM_ATTR randf()
 {
     return (float)(rand() / (RAND_MAX + 1.0));
 }
 
 
-static inline float signed_randf()
+static inline float IRAM_ATTR signed_randf()
 {
     return randf()*2 - 1;
 }
 
 // return a random integer between [0, bound)
-static inline int irand(int bound)
+static inline int IRAM_ATTR irand(int bound)
 {
     int v = (int) (randf()*bound);
     if (v == bound)
@@ -97,40 +105,40 @@ static inline int irand(int bound)
 }
 
 /** Map vin to [0, 2*PI) **/
-static inline float mod2pi_positive(float vin)
+static inline float IRAM_ATTR mod2pi_positive(float vin)
 {
     return vin - M_2_PI * floor(vin / M_2_PI);
 }
 
 /** Map vin to [-PI, PI) **/
-static inline float mod2pi(float vin)
+static inline float IRAM_ATTR mod2pi(float vin)
 {
     return mod2pi_positive(vin + M_PI) - M_PI;
 }
 
 /** Return vin such that it is within PI degrees of ref **/
-static inline float mod2pi_ref(float ref, float vin)
+static inline float IRAM_ATTR mod2pi_ref(float ref, float vin)
 {
     return ref + mod2pi(vin - ref);
 }
 
 /** Map vin to [0, 360) **/
-static inline float mod360_positive(float vin)
+static inline float IRAM_ATTR mod360_positive(float vin)
 {
     return vin - 360 * floor(vin / 360);
 }
 
 /** Map vin to [-180, 180) **/
-static inline float mod360(float vin)
+static inline float IRAM_ATTR mod360(float vin)
 {
     return mod360_positive(vin + 180) - 180;
 }
 
-static inline int mod_positive(int vin, int mod) {
+static inline int IRAM_ATTR mod_positive(int vin, int mod) {
     return (vin % mod + mod) % mod;
 }
 
-static inline int theta_to_int(float theta, int max)
+static inline int IRAM_ATTR theta_to_int(float theta, int max)
 {
     theta = mod2pi_ref(M_PI, theta);
     int v = (int) (theta / M_2_PI * max);
@@ -143,32 +151,32 @@ static inline int theta_to_int(float theta, int max)
     return v;
 }
 
-static inline int imin(int a, int b)
+static inline int IRAM_ATTR imin(int a, int b)
 {
     return (a < b) ? a : b;
 }
 
-static inline int imax(int a, int b)
+static inline int IRAM_ATTR imax(int a, int b)
 {
     return (a > b) ? a : b;
 }
 
-static inline int64_t imin64(int64_t a, int64_t b)
+static inline int64_t IRAM_ATTR imin64(int64_t a, int64_t b)
 {
     return (a < b) ? a : b;
 }
 
-static inline int64_t imax64(int64_t a, int64_t b)
+static inline int64_t IRAM_ATTR imax64(int64_t a, int64_t b)
 {
     return (a > b) ? a : b;
 }
 
-static inline int iclamp(int v, int minv, int maxv)
+static inline int IRAM_ATTR iclamp(int v, int minv, int maxv)
 {
     return imax(minv, imin(v, maxv));
 }
 
-static inline float dclamp(float a, float min, float max)
+static inline float IRAM_ATTR dclamp(float a, float min, float max)
 {
     if (a < min)
         return min;
@@ -177,7 +185,7 @@ static inline float dclamp(float a, float min, float max)
     return a;
 }
 
-static inline int fltcmp (float f1, float f2)
+static inline int IRAM_ATTR fltcmp (float f1, float f2)
 {
     float epsilon = f1-f2;
     if (epsilon < 0.0)
@@ -188,7 +196,7 @@ static inline int fltcmp (float f1, float f2)
         return  0;
 }
 
-static inline int dblcmp (float d1, float d2)
+static inline int IRAM_ATTR dblcmp (float d1, float d2)
 {
     float epsilon = d1-d2;
     if (epsilon < 0.0)

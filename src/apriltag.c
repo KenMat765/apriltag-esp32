@@ -68,7 +68,7 @@ static inline long int random(void)
 
 #define APRILTAG_U64_ONE ((uint64_t) 1)
 
-extern zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im);
+extern zarray_t IRAM_ATTR *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im);
 
 // Regresses a model of the form:
 // intensity(x,y) = C0*x + C1*y + CC2
@@ -85,12 +85,12 @@ struct graymodel
     float C[3];
 };
 
-static void graymodel_init(struct graymodel *gm)
+static void IRAM_ATTR graymodel_init(struct graymodel *gm)
 {
     memset(gm, 0, sizeof(struct graymodel));
 }
 
-static void graymodel_add(struct graymodel *gm, float x, float y, float gray)
+static void IRAM_ATTR graymodel_add(struct graymodel *gm, float x, float y, float gray)
 {
     // update upper right entries of A = J'J
     gm->A[0][0] += x*x;
@@ -106,12 +106,12 @@ static void graymodel_add(struct graymodel *gm, float x, float y, float gray)
     gm->B[2] += gray;
 }
 
-static void graymodel_solve(struct graymodel *gm)
+static void IRAM_ATTR graymodel_solve(struct graymodel *gm)
 {
     mat33_sym_solve((float*) gm->A, gm->B, gm->C);
 }
 
-static float graymodel_interpolate(struct graymodel *gm, float x, float y)
+static float IRAM_ATTR graymodel_interpolate(struct graymodel *gm, float x, float y)
 {
     return gm->C[0]*x + gm->C[1]*y + gm->C[2];
 }
@@ -134,7 +134,7 @@ struct quick_decode
  * Assuming we are drawing the image one quadrant at a time, what would the rotated image look like?
  * Special care is taken to handle the case where there is a middle pixel of the image.
  */
-static uint64_t rotate90(uint64_t w, int numBits)
+static uint64_t IRAM_ATTR rotate90(uint64_t w, int numBits)
 {
     int p = numBits;
     uint64_t l = 0;
@@ -147,7 +147,7 @@ static uint64_t rotate90(uint64_t w, int numBits)
     return w;
 }
 
-static void quad_destroy(struct quad *quad)
+static void IRAM_ATTR quad_destroy(struct quad *quad)
 {
     if (!quad)
         return;
@@ -157,7 +157,7 @@ static void quad_destroy(struct quad *quad)
     free(quad);
 }
 
-static struct quad *quad_copy(struct quad *quad)
+static struct quad IRAM_ATTR *quad_copy(struct quad *quad)
 {
     struct quad *q = calloc(1, sizeof(struct quad));
     memcpy(q, quad, sizeof(struct quad));
@@ -168,7 +168,7 @@ static struct quad *quad_copy(struct quad *quad)
     return q;
 }
 
-static void quick_decode_add(struct quick_decode *qd, uint64_t code, int id, int hamming)
+static void IRAM_ATTR quick_decode_add(struct quick_decode *qd, uint64_t code, int id, int hamming)
 {
     uint32_t bucket = code % qd->nentries;
 
@@ -181,7 +181,7 @@ static void quick_decode_add(struct quick_decode *qd, uint64_t code, int id, int
     qd->entries[bucket].hamming = hamming;
 }
 
-static void quick_decode_uninit(apriltag_family_t *fam)
+static void IRAM_ATTR quick_decode_uninit(apriltag_family_t *fam)
 {
     if (!fam->impl)
         return;
@@ -192,7 +192,7 @@ static void quick_decode_uninit(apriltag_family_t *fam)
     fam->impl = NULL;
 }
 
-static void quick_decode_init(apriltag_family_t *family, int maxhamming)
+static void IRAM_ATTR quick_decode_init(apriltag_family_t *family, int maxhamming)
 {
     assert(family->impl == NULL);
     assert(family->ncodes < 65536);
@@ -291,7 +291,7 @@ static void quick_decode_init(apriltag_family_t *family, int maxhamming)
 }
 
 // returns an entry with hamming set to 255 if no decode was found.
-static void quick_decode_codeword(apriltag_family_t *tf, uint64_t rcode,
+static void IRAM_ATTR quick_decode_codeword(apriltag_family_t *tf, uint64_t rcode,
                                   struct quick_decode_entry *entry)
 {
     struct quick_decode *qd = (struct quick_decode*) tf->impl;
@@ -319,7 +319,7 @@ static void quick_decode_codeword(apriltag_family_t *tf, uint64_t rcode,
     entry->rotation = 0;
 }
 
-static inline int detection_compare_function(const void *_a, const void *_b)
+static inline int IRAM_ATTR detection_compare_function(const void *_a, const void *_b)
 {
     apriltag_detection_t *a = *(apriltag_detection_t**) _a;
     apriltag_detection_t *b = *(apriltag_detection_t**) _b;
@@ -327,13 +327,13 @@ static inline int detection_compare_function(const void *_a, const void *_b)
     return a->id - b->id;
 }
 
-void apriltag_detector_remove_family(apriltag_detector_t *td, apriltag_family_t *fam)
+void IRAM_ATTR apriltag_detector_remove_family(apriltag_detector_t *td, apriltag_family_t *fam)
 {
     quick_decode_uninit(fam);
     zarray_remove_value(td->tag_families, &fam, 0);
 }
 
-void apriltag_detector_add_family_bits(apriltag_detector_t *td, apriltag_family_t *fam, int bits_corrected)
+void IRAM_ATTR apriltag_detector_add_family_bits(apriltag_detector_t *td, apriltag_family_t *fam, int bits_corrected)
 {
     zarray_add(td->tag_families, &fam);
 
@@ -341,7 +341,7 @@ void apriltag_detector_add_family_bits(apriltag_detector_t *td, apriltag_family_
         quick_decode_init(fam, bits_corrected);
 }
 
-void apriltag_detector_clear_families(apriltag_detector_t *td)
+void IRAM_ATTR apriltag_detector_clear_families(apriltag_detector_t *td)
 {
     for (int i = 0; i < zarray_size(td->tag_families); i++) {
         apriltag_family_t *fam;
@@ -351,7 +351,7 @@ void apriltag_detector_clear_families(apriltag_detector_t *td)
     zarray_clear(td->tag_families);
 }
 
-apriltag_detector_t *apriltag_detector_create()
+apriltag_detector_t IRAM_ATTR *apriltag_detector_create()
 {
     apriltag_detector_t *td = (apriltag_detector_t*) calloc(1, sizeof(apriltag_detector_t));
 
@@ -385,7 +385,7 @@ apriltag_detector_t *apriltag_detector_create()
     return td;
 }
 
-void apriltag_detector_destroy(apriltag_detector_t *td)
+void IRAM_ATTR apriltag_detector_destroy(apriltag_detector_t *td)
 {
     timeprofile_destroy(td->tp);
     workerpool_destroy(td->wp);
@@ -418,7 +418,7 @@ struct evaluate_quad_ret
     struct quick_decode_entry e;
 };
 
-static matd_t* homography_compute2(float c[4][4]) {
+static matd_t* IRAM_ATTR homography_compute2(float c[4][4]) {
     float A[] =  {
             c[0][0], c[0][1], 1,       0,       0, 0, -c[0][0]*c[0][2], -c[0][1]*c[0][2], c[0][2],
                   0,       0, 0, c[0][0], c[0][1], 1, -c[0][0]*c[0][3], -c[0][1]*c[0][3], c[0][3],
@@ -483,7 +483,7 @@ static matd_t* homography_compute2(float c[4][4]) {
 }
 
 // returns non-zero if an error occurs (i.e., H has no inverse)
-static int quad_update_homographies(struct quad *quad)
+static int IRAM_ATTR quad_update_homographies(struct quad *quad)
 {
     //zarray_t *correspondences = zarray_create(sizeof(float[4]));
 
@@ -515,7 +515,7 @@ static int quad_update_homographies(struct quad *quad)
     return -1;
 }
 
-static float value_for_pixel(image_u8_t *im, float px, float py) {
+static float IRAM_ATTR value_for_pixel(image_u8_t *im, float px, float py) {
     int x1 = floor(px - 0.5);
     int x2 = ceil(px - 0.5);
     float x = px - 0.5 - x1;
@@ -531,7 +531,7 @@ static float value_for_pixel(image_u8_t *im, float px, float py) {
             im->buf[y2*im->stride + x2]*x*y;
 }
 
-static void sharpen(apriltag_detector_t* td, float* values, int size) {
+static void IRAM_ATTR sharpen(apriltag_detector_t* td, float* values, int size) {
     float *sharpened = malloc(sizeof(float)*size*size);
     float kernel[9] = {
         0, -1, 0,
@@ -564,7 +564,7 @@ static void sharpen(apriltag_detector_t* td, float* values, int size) {
 }
 
 // returns the decision margin. Return < 0 if the detection should be rejected.
-static float quad_decode(apriltag_detector_t* td, apriltag_family_t *family, image_u8_t *im, struct quad *quad, struct quick_decode_entry *entry, image_u8_t *im_samples)
+static float IRAM_ATTR quad_decode(apriltag_detector_t* td, apriltag_family_t *family, image_u8_t *im, struct quad *quad, struct quick_decode_entry *entry, image_u8_t *im_samples)
 {
     // decode the tag binary contents by sampling the pixel
     // closest to the center of each bit cell.
@@ -738,7 +738,7 @@ static float quad_decode(apriltag_detector_t* td, apriltag_family_t *family, ima
     return fmin(white_score / white_score_count, black_score / black_score_count);
 }
 
-static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct quad *quad)
+static void IRAM_ATTR refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct quad *quad)
 {
     float lines[4][4]; // for each line, [Ex Ey nx ny]
 
@@ -887,7 +887,7 @@ static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct qu
     }
 }
 
-static void quad_decode_task(void *_u)
+static void IRAM_ATTR quad_decode_task(void *_u)
 {
     struct quad_decode_task *task = (struct quad_decode_task*) _u;
     apriltag_detector_t *td = task->td;
@@ -975,7 +975,7 @@ static void quad_decode_task(void *_u)
     }
 }
 
-void apriltag_detection_destroy(apriltag_detection_t *det)
+void IRAM_ATTR apriltag_detection_destroy(apriltag_detection_t *det)
 {
     if (det == NULL)
         return;
@@ -984,7 +984,7 @@ void apriltag_detection_destroy(apriltag_detection_t *det)
     free(det);
 }
 
-static int prefer_smaller(int pref, float q0, float q1)
+static int IRAM_ATTR prefer_smaller(int pref, float q0, float q1)
 {
     if (pref)     // already prefer something? exit.
         return pref;
@@ -998,7 +998,7 @@ static int prefer_smaller(int pref, float q0, float q1)
     return 0;
 }
 
-zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
+zarray_t IRAM_ATTR *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
 {
     if (zarray_size(td->tag_families) == 0) {
         zarray_t *s = zarray_create(sizeof(apriltag_detection_t*));
@@ -1410,7 +1410,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
 
 
 // Call this method on each of the tags returned by apriltag_detector_detect
-void apriltag_detections_destroy(zarray_t *detections)
+void IRAM_ATTR apriltag_detections_destroy(zarray_t *detections)
 {
     for (int i = 0; i < zarray_size(detections); i++) {
         apriltag_detection_t *det;
@@ -1422,7 +1422,7 @@ void apriltag_detections_destroy(zarray_t *detections)
     zarray_destroy(detections);
 }
 
-image_u8_t *apriltag_to_image(apriltag_family_t *fam, uint32_t idx)
+image_u8_t IRAM_ATTR *apriltag_to_image(apriltag_family_t *fam, uint32_t idx)
 {
     assert(fam != NULL);
     assert(idx < fam->ncodes);

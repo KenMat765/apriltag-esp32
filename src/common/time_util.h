@@ -31,6 +31,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stdint.h>
 #include <time.h>
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 #ifdef _WIN32
 #include <windows.h>
 typedef long long suseconds_t;
@@ -58,27 +66,27 @@ extern "C" {
 #endif
 
 typedef struct timeutil_rest timeutil_rest_t;
-timeutil_rest_t *timeutil_rest_create();
-void timeutil_rest_destroy(timeutil_rest_t * rest);
+timeutil_rest_t IRAM_ATTR *timeutil_rest_create();
+void IRAM_ATTR timeutil_rest_destroy(timeutil_rest_t * rest);
 
-int64_t utime_now(); // blacklist-ignore
-int64_t utime_get_seconds(int64_t v);
-int64_t utime_get_useconds(int64_t v);
-void    utime_to_timeval(int64_t v, struct timeval *tv);
-void    utime_to_timespec(int64_t v, struct timespec *ts);
+int64_t IRAM_ATTR utime_now(); // blacklist-ignore
+int64_t IRAM_ATTR utime_get_seconds(int64_t v);
+int64_t IRAM_ATTR utime_get_useconds(int64_t v);
+void IRAM_ATTR    utime_to_timeval(int64_t v, struct timeval *tv);
+void IRAM_ATTR    utime_to_timespec(int64_t v, struct timespec *ts);
 
-int32_t  timeutil_usleep(int64_t useconds);
-uint32_t timeutil_sleep(unsigned int seconds);
-int32_t  timeutil_sleep_hz(timeutil_rest_t *rest, float hz);
+int32_t IRAM_ATTR  timeutil_usleep(int64_t useconds);
+uint32_t IRAM_ATTR timeutil_sleep(unsigned int seconds);
+int32_t IRAM_ATTR  timeutil_sleep_hz(timeutil_rest_t *rest, float hz);
 
-void timeutil_timer_reset(timeutil_rest_t *rest);
-void timeutil_timer_start(timeutil_rest_t *rest);
-void timeutil_timer_stop(timeutil_rest_t *rest);
-bool timeutil_timer_timeout(timeutil_rest_t *rest, float timeout_s);
+void IRAM_ATTR timeutil_timer_reset(timeutil_rest_t *rest);
+void IRAM_ATTR timeutil_timer_start(timeutil_rest_t *rest);
+void IRAM_ATTR timeutil_timer_stop(timeutil_rest_t *rest);
+bool IRAM_ATTR timeutil_timer_timeout(timeutil_rest_t *rest, float timeout_s);
 
-int64_t time_util_hhmmss_ss_to_utime(float time);
+int64_t IRAM_ATTR time_util_hhmmss_ss_to_utime(float time);
 
-int64_t timeutil_ms_to_us(int32_t ms);
+int64_t IRAM_ATTR timeutil_ms_to_us(int32_t ms);
 
 #ifdef __cplusplus
 }

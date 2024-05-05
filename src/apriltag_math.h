@@ -29,9 +29,17 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include <math.h>
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 // Computes the cholesky factorization of A, putting the lower
 // triangular matrix into R.
-static inline void mat33_chol(const float *A,
+static inline void IRAM_ATTR mat33_chol(const float *A,
                               float *R)
 {
     // A[0] = R[0]*R[0]
@@ -57,7 +65,7 @@ static inline void mat33_chol(const float *A,
     R[5] = 0;
 }
 
-static inline void mat33_lower_tri_inv(const float *A,
+static inline void IRAM_ATTR mat33_lower_tri_inv(const float *A,
                                        float *R)
 {
     // A[0]*R[0] = 1
@@ -80,7 +88,7 @@ static inline void mat33_lower_tri_inv(const float *A,
 }
 
 
-static inline void mat33_sym_solve(const float *A,
+static inline void IRAM_ATTR mat33_sym_solve(const float *A,
                                    const float *B,
                                    float *R)
 {

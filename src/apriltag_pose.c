@@ -9,7 +9,7 @@
 /**
  * Calculate projection operator from image points.
  */
-matd_t* calculate_F(matd_t* v) {
+matd_t* IRAM_ATTR calculate_F(matd_t* v) {
     matd_t* outer_product = matd_op("MM'", v, v, v, v);
     matd_t* inner_product = matd_op("M'M", v, v);
     matd_scale_inplace(outer_product, 1.0/inner_product->data[0]);
@@ -20,7 +20,7 @@ matd_t* calculate_F(matd_t* v) {
 /**
  * Returns the value of the supplied scalar matrix 'a' and destroys the matrix.
  */
-float matd_to_float(matd_t *a)
+float IRAM_ATTR matd_to_float(matd_t *a)
 {
     assert(matd_is_scalar(a));
     float d = a->data[0];
@@ -40,7 +40,7 @@ float matd_to_float(matd_t *a)
  *
  * Implementation of Orthogonal Iteration from Lu, 2000.
  */
-float orthogonal_iteration(matd_t** v, matd_t** p, matd_t** t, matd_t** R, int n_points, int n_steps) {
+float IRAM_ATTR orthogonal_iteration(matd_t** v, matd_t** p, matd_t** t, matd_t** R, int n_points, int n_steps) {
     matd_t* p_mean = matd_create(3, 1);
     for (int i = 0; i < n_points; i++) {
         matd_add_inplace(p_mean, p[i]);
@@ -140,7 +140,7 @@ float orthogonal_iteration(matd_t** v, matd_t** p, matd_t** t, matd_t** R, int n
 /**
  * Evaluates polynomial p at x.
  */
-float polyval(float* p, int degree, float x) {
+float IRAM_ATTR polyval(float* p, int degree, float x) {
     float ret = 0;
     for (int i = 0; i <= degree; i++) {
         ret += p[i]*pow(x, i);
@@ -157,7 +157,7 @@ float polyval(float* p, int degree, float x) {
  * @outparam roots
  * @outparam n_roots
  */
-void solve_poly_approx(float* p, int degree, float* roots, int* n_roots) {
+void IRAM_ATTR solve_poly_approx(float* p, int degree, float* roots, int* n_roots) {
     static const int MAX_ROOT = 1000;
     if (degree == 1) {
         if (fabs(p[0]) > MAX_ROOT*fabs(p[1])) {
@@ -256,7 +256,7 @@ void solve_poly_approx(float* p, int degree, float* roots, int* n_roots) {
 /**
  * Given a local minima of the pose error tries to find the other minima.
  */
-matd_t* fix_pose_ambiguities(matd_t** v, matd_t** p, matd_t* t, matd_t* R, int n_points) {
+matd_t* IRAM_ATTR fix_pose_ambiguities(matd_t** v, matd_t** p, matd_t* t, matd_t* R, int n_points) {
     matd_t* I3 = matd_identity(3);
 
     // 1. Find R_t
@@ -452,7 +452,7 @@ matd_t* fix_pose_ambiguities(matd_t** v, matd_t** p, matd_t* t, matd_t* R, int n
 /**
  * Estimate pose of the tag using the homography method.
  */
-void estimate_pose_for_tag_homography(apriltag_detection_info_t* info, apriltag_pose_t* solution) {
+void IRAM_ATTR estimate_pose_for_tag_homography(apriltag_detection_info_t* info, apriltag_pose_t* solution) {
     float scale = info->tagsize/2.0;
 
     matd_t *M_H = homography_to_pose(info->det->H, -info->fx, info->fy, info->cx, info->cy);
@@ -487,7 +487,7 @@ void estimate_pose_for_tag_homography(apriltag_detection_info_t* info, apriltag_
 /**
  * Estimate tag pose using orthogonal iteration.
  */
-void estimate_tag_pose_orthogonal_iteration(
+void IRAM_ATTR estimate_tag_pose_orthogonal_iteration(
         apriltag_detection_info_t* info,
         float* err1,
         apriltag_pose_t* solution1,
@@ -525,7 +525,7 @@ void estimate_tag_pose_orthogonal_iteration(
 /**
  * Estimate tag pose.
  */
-float estimate_tag_pose(apriltag_detection_info_t* info, apriltag_pose_t* pose) {
+float IRAM_ATTR estimate_tag_pose(apriltag_detection_info_t* info, apriltag_pose_t* pose) {
     float err1, err2;
     apriltag_pose_t pose1, pose2;
     estimate_tag_pose_orthogonal_iteration(info, &err1, &pose1, &err2, &pose2, 50);

@@ -29,6 +29,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include <stdint.h>
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 enum { PAM_GRAYSCALE_ALPHA = 5000, PAM_RGB_ALPHA, PAM_RGB, PAM_GRAYSCALE };
 
 typedef struct pam pam_t;

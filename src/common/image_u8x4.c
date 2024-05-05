@@ -38,12 +38,12 @@ either expressed or implied, of the Regents of The University of Michigan.
 // for 16byte-wide RGBA processing).
 #define DEFAULT_ALIGNMENT_U8X4 64
 
-image_u8x4_t *image_u8x4_create(unsigned int width, unsigned int height)
+image_u8x4_t IRAM_ATTR *image_u8x4_create(unsigned int width, unsigned int height)
 {
     return image_u8x4_create_alignment(width, height, DEFAULT_ALIGNMENT_U8X4);
 }
 
-image_u8x4_t *image_u8x4_create_alignment(unsigned int width, unsigned int height, unsigned int alignment)
+image_u8x4_t IRAM_ATTR *image_u8x4_create_alignment(unsigned int width, unsigned int height, unsigned int alignment)
 {
     int stride = 4*width;
 
@@ -60,7 +60,7 @@ image_u8x4_t *image_u8x4_create_alignment(unsigned int width, unsigned int heigh
     return im;
 }
 
-image_u8x4_t *image_u8x4_copy(const image_u8x4_t *in)
+image_u8x4_t IRAM_ATTR *image_u8x4_copy(const image_u8x4_t *in)
 {
     uint8_t *buf = malloc(in->height*in->stride*sizeof(uint8_t));
     memcpy(buf, in->buf, in->height*in->stride*sizeof(uint8_t));
@@ -73,7 +73,7 @@ image_u8x4_t *image_u8x4_copy(const image_u8x4_t *in)
     return copy;
 }
 
-void image_u8x4_destroy(image_u8x4_t *im)
+void IRAM_ATTR image_u8x4_destroy(image_u8x4_t *im)
 {
     if (!im)
         return;
@@ -83,7 +83,7 @@ void image_u8x4_destroy(image_u8x4_t *im)
 }
 
 ////////////////////////////////////////////////////////////
-image_u8x4_t *image_u8x4_create_from_pam(const char *inpath)
+image_u8x4_t IRAM_ATTR *image_u8x4_create_from_pam(const char *inpath)
 {
     pam_t *pam = pam_create_from_file(inpath);
     if (!pam)
@@ -120,7 +120,7 @@ image_u8x4_t *image_u8x4_create_from_pam(const char *inpath)
 // PNM file i/o
 
 // Create an RGBA image from PNM
-image_u8x4_t *image_u8x4_create_from_pnm(const char *path)
+image_u8x4_t IRAM_ATTR *image_u8x4_create_from_pnm(const char *path)
 {
     pnm_t *pnmp = pnm_create_from_file(path);
     if (pnmp == NULL)
@@ -178,7 +178,7 @@ image_u8x4_t *image_u8x4_create_from_pnm(const char *path)
     return imp;
 }
 
-int image_u8x4_write_pnm(const image_u8x4_t *imp, const char *path)
+int IRAM_ATTR image_u8x4_write_pnm(const image_u8x4_t *imp, const char *path)
 {
     // copy struct by value to ensure common subexpression elimination occurs
     const image_u8x4_t im = *imp;
@@ -214,7 +214,7 @@ int image_u8x4_write_pnm(const image_u8x4_t *imp, const char *path)
     return res;
 }
 
-void image_u8x4_write_pam(const image_u8x4_t *im, const char *path)
+void IRAM_ATTR image_u8x4_write_pam(const image_u8x4_t *im, const char *path)
 {
     FILE *f = fopen(path, "w");
     fprintf(f, "P7\n");

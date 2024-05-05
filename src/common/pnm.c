@@ -31,7 +31,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include "pnm.h"
 
-pnm_t *pnm_create_from_file(const char *path)
+pnm_t IRAM_ATTR *pnm_create_from_file(const char *path)
 {
     FILE *f = fopen(path, "rb");
     if (f == NULL)
@@ -144,7 +144,7 @@ error:
     return NULL;
 }
 
-void pnm_destroy(pnm_t *pnm)
+void IRAM_ATTR pnm_destroy(pnm_t *pnm)
 {
     if (pnm == NULL)
         return;

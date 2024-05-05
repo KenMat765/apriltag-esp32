@@ -40,12 +40,12 @@ either expressed or implied, of the Regents of The University of Michigan.
 // for 16byte-wide RGB processing). (It's possible that 48 would be enough).
 #define DEFAULT_ALIGNMENT_U8X3 192
 
-image_u8x3_t *image_u8x3_create(unsigned int width, unsigned int height)
+image_u8x3_t IRAM_ATTR *image_u8x3_create(unsigned int width, unsigned int height)
 {
     return image_u8x3_create_alignment(width, height, DEFAULT_ALIGNMENT_U8X3);
 }
 
-image_u8x3_t *image_u8x3_create_alignment(unsigned int width, unsigned int height, unsigned int alignment)
+image_u8x3_t IRAM_ATTR *image_u8x3_create_alignment(unsigned int width, unsigned int height, unsigned int alignment)
 {
     int stride = 3*width;
 
@@ -62,7 +62,7 @@ image_u8x3_t *image_u8x3_create_alignment(unsigned int width, unsigned int heigh
     return im;
 }
 
-image_u8x3_t *image_u8x3_copy(const image_u8x3_t *in)
+image_u8x3_t IRAM_ATTR *image_u8x3_copy(const image_u8x3_t *in)
 {
     uint8_t *buf = malloc(in->height*in->stride*sizeof(uint8_t));
     memcpy(buf, in->buf, in->height*in->stride*sizeof(uint8_t));
@@ -75,7 +75,7 @@ image_u8x3_t *image_u8x3_copy(const image_u8x3_t *in)
     return copy;
 }
 
-void image_u8x3_destroy(image_u8x3_t *im)
+void IRAM_ATTR image_u8x3_destroy(image_u8x3_t *im)
 {
     if (!im)
         return;
@@ -88,7 +88,7 @@ void image_u8x3_destroy(image_u8x3_t *im)
 // PNM file i/o
 
 // Create an RGB image from PNM
-image_u8x3_t *image_u8x3_create_from_pnm(const char *path)
+image_u8x3_t IRAM_ATTR *image_u8x3_create_from_pnm(const char *path)
 {
     pnm_t *pnm = pnm_create_from_file(path);
     if (pnm == NULL)
@@ -135,7 +135,7 @@ image_u8x3_t *image_u8x3_create_from_pnm(const char *path)
     return im;
 }
 
-int image_u8x3_write_pnm(const image_u8x3_t *im, const char *path)
+int IRAM_ATTR image_u8x3_write_pnm(const image_u8x3_t *im, const char *path)
 {
     FILE *f = fopen(path, "wb");
     int res = 0;
@@ -163,7 +163,7 @@ finish:
 }
 
 // only width 1 supported
-void image_u8x3_draw_line(image_u8x3_t *im, float x0, float y0, float x1, float y1, uint8_t rgb[3])
+void IRAM_ATTR image_u8x3_draw_line(image_u8x3_t *im, float x0, float y0, float x1, float y1, uint8_t rgb[3])
 {
     float dist = sqrtf((y1-y0)*(y1-y0) + (x1-x0)*(x1-x0));
     float delta = 0.5 / dist;
@@ -182,7 +182,7 @@ void image_u8x3_draw_line(image_u8x3_t *im, float x0, float y0, float x1, float 
     }
 }
 
-static void convolve(const uint8_t *x, uint8_t *y, int sz, const uint8_t *k, int ksz)
+static void IRAM_ATTR convolve(const uint8_t *x, uint8_t *y, int sz, const uint8_t *k, int ksz)
 {
     assert((ksz&1)==1);
 
@@ -202,7 +202,7 @@ static void convolve(const uint8_t *x, uint8_t *y, int sz, const uint8_t *k, int
         y[i] = x[i];
 }
 
-void image_u8x3_gaussian_blur(image_u8x3_t *im, float sigma, int ksz)
+void IRAM_ATTR image_u8x3_gaussian_blur(image_u8x3_t *im, float sigma, int ksz)
 {
     if (sigma == 0)
         return;

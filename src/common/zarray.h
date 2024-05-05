@@ -32,6 +32,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -54,7 +62,7 @@ struct zarray
  * the specified size. It is the caller's responsibility to call zarray_destroy()
  * on the returned array when it is no longer needed.
  */
-static inline zarray_t *zarray_create(size_t el_sz)
+static inline zarray_t IRAM_ATTR *zarray_create(size_t el_sz)
 {
     assert(el_sz > 0);
 
@@ -67,7 +75,7 @@ static inline zarray_t *zarray_create(size_t el_sz)
  * Frees all resources associated with the variable array structure which was
  * created by zarray_create(). After calling, 'za' will no longer be valid for storage.
  */
-static inline void zarray_destroy(zarray_t *za)
+static inline void IRAM_ATTR zarray_destroy(zarray_t *za)
 {
     if (za == NULL)
         return;
@@ -79,7 +87,7 @@ static inline void zarray_destroy(zarray_t *za)
 }
 
 /** Allocate a new zarray that contains a copy of the data in the argument. **/
-static inline zarray_t *zarray_copy(const zarray_t *za)
+static inline zarray_t IRAM_ATTR *zarray_copy(const zarray_t *za)
 {
     assert(za != NULL);
 
@@ -92,7 +100,7 @@ static inline zarray_t *zarray_copy(const zarray_t *za)
     return zb;
 }
 
-static int iceillog2(int v)
+static int IRAM_ATTR iceillog2(int v)
 {
     v--;
     v |= v >> 1;
@@ -109,7 +117,7 @@ static int iceillog2(int v)
  * elements. NOTE: end index is EXCLUSIVE, that is one past the last
  * element you want.
  */
-static inline zarray_t *zarray_copy_subset(const zarray_t *za,
+static inline zarray_t IRAM_ATTR *zarray_copy_subset(const zarray_t *za,
                              int start_idx,
                              int end_idx_exclusive)
 {
@@ -127,7 +135,7 @@ static inline zarray_t *zarray_copy_subset(const zarray_t *za,
  * array, which may be different from its capacity. The index of the last element
  * in the array will be one less than the returned value.
  */
-static inline int zarray_size(const zarray_t *za)
+static inline int IRAM_ATTR zarray_size(const zarray_t *za)
 {
     assert(za != NULL);
 
@@ -155,7 +163,7 @@ int zarray_isempty(const zarray_t *za)
  * Allocates enough internal storage in the supplied variable array structure to
  * guarantee that the supplied number of elements (capacity) can be safely stored.
  */
-static inline void zarray_ensure_capacity(zarray_t *za, int capacity)
+static inline void IRAM_ATTR zarray_ensure_capacity(zarray_t *za, int capacity)
 {
     assert(za != NULL);
 
@@ -176,7 +184,7 @@ static inline void zarray_ensure_capacity(zarray_t *za, int capacity)
  * (by copying) from the data pointed to by the supplied pointer 'p'.
  * Automatically ensures that enough storage space is available for the new element.
  */
-static inline void zarray_add(zarray_t *za, const void *p)
+static inline void IRAM_ATTR zarray_add(zarray_t *za, const void *p)
 {
     assert(za != NULL);
     assert(p != NULL);
@@ -192,7 +200,7 @@ static inline void zarray_add(zarray_t *za, const void *p)
  * index of 'idx' and copies its value into the variable pointed to by the pointer
  * 'p'.
  */
-static inline void zarray_get(const zarray_t *za, int idx, void *p)
+static inline void IRAM_ATTR zarray_get(const zarray_t *za, int idx, void *p)
 {
     assert(za != NULL);
     assert(p != NULL);
@@ -209,7 +217,7 @@ static inline void zarray_get(const zarray_t *za, int idx, void *p)
  * zarray_remove_index(), zarray_insert(), zarray_sort(), zarray_clear()).
  * 'p' should be a pointer to the pointer which will be set to the internal address.
  */
-inline static void zarray_get_volatile(const zarray_t *za, int idx, void *p)
+inline static void IRAM_ATTR zarray_get_volatile(const zarray_t *za, int idx, void *p)
 {
     assert(za != NULL);
     assert(p != NULL);
@@ -219,7 +227,7 @@ inline static void zarray_get_volatile(const zarray_t *za, int idx, void *p)
     *((void**) p) = &za->data[idx*za->el_sz];
 }
 
-inline static void zarray_truncate(zarray_t *za, int sz)
+inline static void IRAM_ATTR zarray_truncate(zarray_t *za, int sz)
 {
    assert(za != NULL);
    assert(sz <= za->size);
@@ -231,7 +239,7 @@ inline static void zarray_truncate(zarray_t *za, int sz)
  * If shuffle is true, the last element in the array will be placed in
  * the newly-open space; if false, the zarray is compacted.
  */
-static inline void zarray_remove_index(zarray_t *za, int idx, int shuffle)
+static inline void IRAM_ATTR zarray_remove_index(zarray_t *za, int idx, int shuffle)
 {
     assert(za != NULL);
     assert(idx >= 0);
@@ -270,7 +278,7 @@ static inline void zarray_remove_index(zarray_t *za, int idx, int shuffle)
 // remove the entry whose value is equal to the value pointed to by p.
 // if shuffle is true, the last element in the array will be placed in
 // the newly-open space; if false, the zarray is compacted.
-static inline int zarray_remove_value(zarray_t *za, const void *p, int shuffle)
+static inline int IRAM_ATTR zarray_remove_value(zarray_t *za, const void *p, int shuffle)
 {
     assert(za != NULL);
     assert(p != NULL);
@@ -293,7 +301,7 @@ static inline int zarray_remove_value(zarray_t *za, const void *p, int shuffle)
  * can be one larger than the current max index to place the new item at the end
  * of the array, or zero to add it to an empty array.
  */
-static inline void zarray_insert(zarray_t *za, int idx, const void *p)
+static inline void IRAM_ATTR zarray_insert(zarray_t *za, int idx, const void *p)
 {
     assert(za != NULL);
     assert(p != NULL);
@@ -316,7 +324,7 @@ static inline void zarray_insert(zarray_t *za, int idx, const void *p)
  * the data pointed to by 'p'. The previous value of the changed element will be
  * copied into the data pointed to by 'outp' if it is not null.
  */
-static inline void zarray_set(zarray_t *za, int idx, const void *p, void *outp)
+static inline void IRAM_ATTR zarray_set(zarray_t *za, int idx, const void *p, void *outp)
 {
     assert(za != NULL);
     assert(p != NULL);
@@ -336,7 +344,7 @@ static inline void zarray_set(zarray_t *za, int idx, const void *p, void *outp)
  *
  * void map_function(element_type *element)
  */
-static inline void zarray_map(zarray_t *za, void (*f)(void*))
+static inline void IRAM_ATTR zarray_map(zarray_t *za, void (*f)(void*))
 {
     assert(za != NULL);
     assert(f != NULL);
@@ -355,14 +363,14 @@ static inline void zarray_map(zarray_t *za, void (*f)(void*))
  *
  * void map_function(element_type *element)
  */
-    void zarray_vmap(zarray_t *za, void (*f)(void *));
+    void IRAM_ATTR zarray_vmap(zarray_t *za, void (*f)(void *));
 
 /**
  * Removes all elements from the array and sets its size to zero. Pointers to
  * any data elements obtained i.e. by zarray_get_volatile() will no longer be
  * valid.
  */
-static inline void zarray_clear(zarray_t *za)
+static inline void IRAM_ATTR zarray_clear(zarray_t *za)
 {
     assert(za != NULL);
     za->size = 0;
@@ -374,7 +382,7 @@ static inline void zarray_clear(zarray_t *za)
  *
  * Returns 1 if a match was found anywhere in the array, else 0.
  */
-static inline int zarray_contains(const zarray_t *za, const void *p)
+static inline int IRAM_ATTR zarray_contains(const zarray_t *za, const void *p)
 {
     assert(za != NULL);
     assert(p != NULL);
@@ -403,7 +411,7 @@ static inline int zarray_contains(const zarray_t *za, const void *p)
  * zstrcmp() can be used as the comparison function for string elements, which
  * will call strcmp() internally.
  */
-static inline void zarray_sort(zarray_t *za, int (*compar)(const void*, const void*))
+static inline void IRAM_ATTR zarray_sort(zarray_t *za, int (*compar)(const void*, const void*))
 {
     assert(za != NULL);
     assert(compar != NULL);
@@ -424,7 +432,7 @@ static inline void zarray_sort(zarray_t *za, int (*compar)(const void*, const vo
   * a pointer to the element.
  **/
 // returns -1 if not in array. Remember p is a pointer to the item.
-static inline int zarray_index_of(const zarray_t *za, const void *p)
+static inline int IRAM_ATTR zarray_index_of(const zarray_t *za, const void *p)
 {
     assert(za != NULL);
     assert(p != NULL);
@@ -441,7 +449,7 @@ static inline int zarray_index_of(const zarray_t *za, const void *p)
  * Add elements from start up to and excluding end from 'source' into 'dest'.
  * el_sz must be the same for both lists
  **/
-static inline void zarray_add_range(zarray_t *dest, const zarray_t *source, int start, int end)
+static inline void IRAM_ATTR zarray_add_range(zarray_t *dest, const zarray_t *source, int start, int end)
 {
     assert(dest->el_sz == source->el_sz);
     assert(dest != NULL);

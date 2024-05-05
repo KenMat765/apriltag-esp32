@@ -30,6 +30,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "matd.h"
 #include "zarray.h"
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -128,10 +136,10 @@ extern "C" {
 #define HOMOGRAPHY_COMPUTE_FLAG_INVERSE 1
 #define HOMOGRAPHY_COMPUTE_FLAG_SVD 0
 
-matd_t *homography_compute(zarray_t *correspondences, int flags);
+matd_t IRAM_ATTR *homography_compute(zarray_t *correspondences, int flags);
 
 //void homography_project(const matd_t *H, float x, float y, float *ox, float *oy);
-static inline void homography_project(const matd_t *H, float x, float y, float *ox, float *oy)
+static inline void IRAM_ATTR homography_project(const matd_t *H, float x, float y, float *ox, float *oy)
 {
     float xx = MATD_EL(H, 0, 0)*x + MATD_EL(H, 0, 1)*y + MATD_EL(H, 0, 2);
     float yy = MATD_EL(H, 1, 0)*x + MATD_EL(H, 1, 1)*y + MATD_EL(H, 1, 2);
@@ -166,7 +174,7 @@ static inline void homography_project(const matd_t *H, float x, float y, float *
 // R20 = H20
 // R21 = H21
 // TZ  = H22
-matd_t *homography_to_pose(const matd_t *H, float fx, float fy, float cx, float cy);
+matd_t IRAM_ATTR *homography_to_pose(const matd_t *H, float fx, float fy, float cx, float cy);
 
 // Similar to above
 // Recover the model view matrix assuming that the projection matrix is:
@@ -176,7 +184,7 @@ matd_t *homography_to_pose(const matd_t *H, float fx, float fy, float cx, float 
 // [ 0  0  C  D ]
 // [ 0  0 -1  0 ]
 
-matd_t *homography_to_model_view(const matd_t *H, float F, float G, float A, float B);
+matd_t IRAM_ATTR *homography_to_model_view(const matd_t *H, float F, float G, float A, float B);
 
 #ifdef __cplusplus
 }

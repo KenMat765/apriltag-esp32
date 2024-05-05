@@ -31,6 +31,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stddef.h>
 #include <string.h>
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -70,7 +78,7 @@ typedef struct
  * to zero. It is the caller's responsibility to call matd_destroy() on the
  * returned matrix.
  */
-matd_t *matd_create(int rows, int cols);
+matd_t IRAM_ATTR *matd_create(int rows, int cols);
 
 /**
  * Creates a float matrix with the given number of rows and columns (or a scalar
@@ -79,7 +87,7 @@ matd_t *matd_create(int rows, int cols);
  * arranged in row-major order (i.e. index = row*ncols + col). It is the caller's
  * responsibility to call matd_destroy() on the returned matrix.
  */
-matd_t *matd_create_data(int rows, int cols, const float *data);
+matd_t IRAM_ATTR *matd_create_data(int rows, int cols, const float *data);
 
 /**
  * Creates a float matrix with the given number of rows and columns (or a scalar
@@ -88,7 +96,7 @@ matd_t *matd_create_data(int rows, int cols, const float *data);
  * arranged in row-major order (i.e. index = row*ncols + col). It is the caller's
  * responsibility to call matd_destroy() on the returned matrix.
  */
-matd_t *matd_create_dataf(int rows, int cols, const float *data);
+matd_t IRAM_ATTR *matd_create_dataf(int rows, int cols, const float *data);
 
 /**
  * Creates a square identity matrix with the given number of rows (and
@@ -96,7 +104,7 @@ matd_t *matd_create_dataf(int rows, int cols, const float *data);
  * It is the caller's responsibility to call matd_destroy() on the
  * returned matrix.
  */
-matd_t *matd_identity(int dim);
+matd_t IRAM_ATTR *matd_identity(int dim);
 
 /**
  * Creates a scalar with the supplied value 'v'. It is the caller's responsibility
@@ -107,37 +115,37 @@ matd_t *matd_identity(int dim);
  * and B must both have specific dimensions. However, if A is a
  * scalar, there are no restrictions on the size of B.
  */
-matd_t *matd_create_scalar(float v);
+matd_t IRAM_ATTR *matd_create_scalar(float v);
 
 /**
  * Retrieves the cell value for matrix 'm' at the given zero-based row and column index.
  * Performs more thorough validation checking than MATD_EL().
  */
-float matd_get(const matd_t *m, unsigned int row, unsigned int col);
+float IRAM_ATTR matd_get(const matd_t *m, unsigned int row, unsigned int col);
 
 /**
  * Assigns the given value to the matrix cell at the given zero-based row and
  * column index. Performs more thorough validation checking than MATD_EL().
  */
-void matd_put(matd_t *m, unsigned int row, unsigned int col, float value);
+void IRAM_ATTR matd_put(matd_t *m, unsigned int row, unsigned int col, float value);
 
 /**
  * Retrieves the scalar value of the given element ('m' must be a scalar).
  * Performs more thorough validation checking than MATD_EL().
  */
-float matd_get_scalar(const matd_t *m);
+float IRAM_ATTR matd_get_scalar(const matd_t *m);
 
 /**
  * Assigns the given value to the supplied scalar element ('m' must be a scalar).
  * Performs more thorough validation checking than MATD_EL().
  */
-void matd_put_scalar(matd_t *m, float value);
+void IRAM_ATTR matd_put_scalar(matd_t *m, float value);
 
 /**
  * Creates an exact copy of the supplied matrix 'm'. It is the caller's
  * responsibility to call matd_destroy() on the returned matrix.
  */
-matd_t *matd_copy(const matd_t *m);
+matd_t IRAM_ATTR *matd_copy(const matd_t *m);
 
 /**
  * Creates a copy of a subset of the supplied matrix 'a'. The subset will include
@@ -147,21 +155,21 @@ matd_t *matd_copy(const matd_t *m);
  * beyond the number of rows/columns of 'a'. It is the caller's  responsibility to
  * call matd_destroy() on the returned matrix.
  */
-matd_t *matd_select(const matd_t *a, unsigned int r0, int r1, unsigned int c0, int c1);
+matd_t IRAM_ATTR *matd_select(const matd_t *a, unsigned int r0, int r1, unsigned int c0, int c1);
 
 /**
  * Prints the supplied matrix 'm' to standard output by applying the supplied
  * printf format specifier 'fmt' for each individual element. Each row will
  * be printed on a separate newline.
  */
-void matd_print(const matd_t *m, const char *fmt);
+void IRAM_ATTR matd_print(const matd_t *m, const char *fmt);
 
 /**
  * Prints the transpose of the supplied matrix 'm' to standard output by applying
  * the supplied printf format specifier 'fmt' for each individual element. Each
  * row will be printed on a separate newline.
  */
-void matd_print_transpose(const matd_t *m, const char *fmt);
+void IRAM_ATTR matd_print_transpose(const matd_t *m, const char *fmt);
 
 /**
  * Adds the two supplied matrices together, cell-by-cell, and returns the results
@@ -169,14 +177,14 @@ void matd_print_transpose(const matd_t *m, const char *fmt);
  * identical dimensions.  It is the caller's responsibility to call matd_destroy()
  * on the returned matrix.
  */
-matd_t *matd_add(const matd_t *a, const matd_t *b);
+matd_t IRAM_ATTR *matd_add(const matd_t *a, const matd_t *b);
 
 /**
  * Adds the values of 'b' to matrix 'a', cell-by-cell, and overwrites the
  * contents of 'a' with the results. The supplied matrices must have
  * identical dimensions.
  */
-void matd_add_inplace(matd_t *a, const matd_t *b);
+void IRAM_ATTR matd_add_inplace(matd_t *a, const matd_t *b);
 
 /**
  * Subtracts matrix 'b' from matrix 'a', cell-by-cell, and returns the results
@@ -184,27 +192,27 @@ void matd_add_inplace(matd_t *a, const matd_t *b);
  * identical dimensions.  It is the caller's responsibility to call matd_destroy()
  * on the returned matrix.
  */
-matd_t *matd_subtract(const matd_t *a, const matd_t *b);
+matd_t IRAM_ATTR *matd_subtract(const matd_t *a, const matd_t *b);
 
 /**
  * Subtracts the values of 'b' from matrix 'a', cell-by-cell, and overwrites the
  * contents of 'a' with the results. The supplied matrices must have
  * identical dimensions.
  */
-void matd_subtract_inplace(matd_t *a, const matd_t *b);
+void IRAM_ATTR matd_subtract_inplace(matd_t *a, const matd_t *b);
 
 /**
  * Scales all cell values of matrix 'a' by the given scale factor 's' and
  * returns the result as a new matrix of the same dimensions. It is the caller's
  * responsibility to call matd_destroy() on the returned matrix.
  */
-matd_t *matd_scale(const matd_t *a, float s);
+matd_t IRAM_ATTR *matd_scale(const matd_t *a, float s);
 
 /**
  * Scales all cell values of matrix 'a' by the given scale factor 's' and
  * overwrites the contents of 'a' with the results.
  */
-void matd_scale_inplace(matd_t *a, float s);
+void IRAM_ATTR matd_scale_inplace(matd_t *a, float s);
 
 /**
  * Multiplies the two supplied matrices together (matrix product), and returns the
@@ -213,18 +221,18 @@ void matd_scale_inplace(matd_t *a, float s);
  * and a column count of columns(b). It is the caller's responsibility to call
  * matd_destroy() on the returned matrix.
  */
-matd_t *matd_multiply(const matd_t *a, const matd_t *b);
+matd_t IRAM_ATTR *matd_multiply(const matd_t *a, const matd_t *b);
 
 /**
  * Creates a matrix which is the transpose of the supplied matrix 'a'. It is the
  * caller's responsibility to call matd_destroy() on the returned matrix.
  */
-matd_t *matd_transpose(const matd_t *a);
+matd_t IRAM_ATTR *matd_transpose(const matd_t *a);
 
 /**
  * Calculates the determinant of the supplied matrix 'a'.
  */
-float matd_det(const matd_t *a);
+float IRAM_ATTR matd_det(const matd_t *a);
 
 /**
  * Attempts to compute an inverse of the supplied matrix 'a' and return it as
@@ -236,9 +244,9 @@ float matd_det(const matd_t *a);
  * conditioned matrices. (E.g.., if such a situation is likely to arise, compute
  * the pseudo-inverse from the SVD.)
  **/
-matd_t *matd_inverse(const matd_t *a);
+matd_t IRAM_ATTR *matd_inverse(const matd_t *a);
 
-static inline void matd_set_data(matd_t *m, const float *data)
+static inline void IRAM_ATTR matd_set_data(matd_t *m, const float *data)
 {
     memcpy(m->data, data, m->nrows * m->ncols * sizeof(float));
 }
@@ -247,7 +255,7 @@ static inline void matd_set_data(matd_t *m, const float *data)
  * Determines whether the supplied matrix 'a' is a scalar (positive return) or
  * not (zero return, indicating a matrix of dimensions at least 1x1).
  */
-static inline int matd_is_scalar(const matd_t *a)
+static inline int IRAM_ATTR matd_is_scalar(const matd_t *a)
 {
     assert(a != NULL);
     return a->ncols <= 1 && a->nrows <= 1;
@@ -258,7 +266,7 @@ static inline int matd_is_scalar(const matd_t *a)
  * (positive return) or not (zero return, indicating either 'a' is a scalar or a
  * matrix with at least one dimension > 1).
  */
-static inline int matd_is_vector(const matd_t *a)
+static inline int IRAM_ATTR matd_is_vector(const matd_t *a)
 {
     assert(a != NULL);
     return a->ncols == 1 || a->nrows == 1;
@@ -268,7 +276,7 @@ static inline int matd_is_vector(const matd_t *a)
  * Determines whether the supplied matrix 'a' is a row or column vector
  * with a dimension of 'len' (positive return) or not (zero return).
  */
-static inline int matd_is_vector_len(const matd_t *a, int len)
+static inline int IRAM_ATTR matd_is_vector_len(const matd_t *a, int len)
 {
     assert(a != NULL);
     return (a->ncols == 1 && a->nrows == (unsigned int)len) || (a->ncols == (unsigned int)len && a->nrows == 1);
@@ -277,27 +285,27 @@ static inline int matd_is_vector_len(const matd_t *a, int len)
 /**
  * Calculates the magnitude of the supplied matrix 'a'.
  */
-float matd_vec_mag(const matd_t *a);
+float IRAM_ATTR matd_vec_mag(const matd_t *a);
 
 /**
  * Calculates the magnitude of the distance between the points represented by
  * matrices 'a' and 'b'. Both 'a' and 'b' must be vectors and have the same
  * dimension (although one may be a row vector and one may be a column vector).
  */
-float matd_vec_dist(const matd_t *a, const matd_t *b);
+float IRAM_ATTR matd_vec_dist(const matd_t *a, const matd_t *b);
 
 
 /**
  * Same as matd_vec_dist, but only uses the first 'n' terms to compute distance
  */
-float matd_vec_dist_n(const matd_t *a, const matd_t *b, int n);
+float IRAM_ATTR matd_vec_dist_n(const matd_t *a, const matd_t *b, int n);
 
 /**
  * Calculates the dot product of two vectors. Both 'a' and 'b' must be vectors
  * and have the same dimension (although one may be a row vector and one may be
  * a column vector).
  */
-float matd_vec_dot_product(const matd_t *a, const matd_t *b);
+float IRAM_ATTR matd_vec_dot_product(const matd_t *a, const matd_t *b);
 
 /**
  * Calculates the normalization of the supplied vector 'a' (i.e. a unit vector
@@ -306,7 +314,7 @@ float matd_vec_dot_product(const matd_t *a, const matd_t *b);
  * non-zero magnitude. It is the caller's responsibility to call matd_destroy()
  * on the returned matrix.
  */
-matd_t *matd_vec_normalize(const matd_t *a);
+matd_t IRAM_ATTR *matd_vec_normalize(const matd_t *a);
 
 /**
  * Calculates the cross product of supplied matrices 'a' and 'b' (i.e. a x b)
@@ -314,9 +322,9 @@ matd_t *matd_vec_normalize(const matd_t *a);
  * 3, but can be either row or column vectors. It is the caller's responsibility
  * to call matd_destroy() on the returned matrix.
  */
-matd_t *matd_crossproduct(const matd_t *a, const matd_t *b);
+matd_t IRAM_ATTR *matd_crossproduct(const matd_t *a, const matd_t *b);
 
-float matd_err_inf(const matd_t *a, const matd_t *b);
+float IRAM_ATTR matd_err_inf(const matd_t *a, const matd_t *b);
 
 /**
  * Creates a new matrix by applying a series of matrix operations, as expressed
@@ -346,13 +354,13 @@ float matd_err_inf(const matd_t *a, const matd_t *b);
  *
  * All whitespace in the expression is ignored.
  */
-matd_t *matd_op(const char *expr, ...);
+matd_t IRAM_ATTR *matd_op(const char *expr, ...);
 
 /**
  * Frees the memory associated with matrix 'm', being the result of an earlier
  * call to a matd_*() function, after which 'm' will no longer be usable.
  */
-void matd_destroy(matd_t *m);
+void IRAM_ATTR matd_destroy(matd_t *m);
 
 typedef struct
 {
@@ -401,16 +409,16 @@ typedef struct
     matd_t *lu; // combined L and U matrices, permuted so they can be triangular.
 } matd_plu_t;
 
-matd_plu_t *matd_plu(const matd_t *a);
-void matd_plu_destroy(matd_plu_t *mlu);
-float matd_plu_det(const matd_plu_t *lu);
-matd_t *matd_plu_p(const matd_plu_t *lu);
-matd_t *matd_plu_l(const matd_plu_t *lu);
-matd_t *matd_plu_u(const matd_plu_t *lu);
-matd_t *matd_plu_solve(const matd_plu_t *mlu, const matd_t *b);
+matd_plu_t IRAM_ATTR *matd_plu(const matd_t *a);
+void IRAM_ATTR matd_plu_destroy(matd_plu_t *mlu);
+float IRAM_ATTR matd_plu_det(const matd_plu_t *lu);
+matd_t IRAM_ATTR *matd_plu_p(const matd_plu_t *lu);
+matd_t IRAM_ATTR *matd_plu_l(const matd_plu_t *lu);
+matd_t IRAM_ATTR *matd_plu_u(const matd_plu_t *lu);
+matd_t IRAM_ATTR *matd_plu_solve(const matd_plu_t *mlu, const matd_t *b);
 
 // uses LU decomposition internally.
-matd_t *matd_solve(matd_t *A, matd_t *b);
+matd_t IRAM_ATTR *matd_solve(matd_t *A, matd_t *b);
 
 ////////////////////////////////
 // Cholesky Factorization
@@ -428,18 +436,18 @@ typedef struct
     matd_t *u;
 } matd_chol_t;
 
-matd_chol_t *matd_chol(matd_t *A);
-matd_t *matd_chol_solve(const matd_chol_t *chol, const matd_t *b);
-void matd_chol_destroy(matd_chol_t *chol);
+matd_chol_t IRAM_ATTR *matd_chol(matd_t *A);
+matd_t IRAM_ATTR *matd_chol_solve(const matd_chol_t *chol, const matd_t *b);
+void IRAM_ATTR matd_chol_destroy(matd_chol_t *chol);
 // only sensible on PSD matrices
-matd_t *matd_chol_inverse(matd_t *a);
+matd_t IRAM_ATTR *matd_chol_inverse(matd_t *a);
 
-void matd_ltransposetriangle_solve(matd_t *u, const float *b, float *x);
-void matd_ltriangle_solve(matd_t *u, const float *b, float *x);
-void matd_utriangle_solve(matd_t *u, const float *b, float *x);
+void IRAM_ATTR matd_ltransposetriangle_solve(matd_t *u, const float *b, float *x);
+void IRAM_ATTR matd_ltriangle_solve(matd_t *u, const float *b, float *x);
+void IRAM_ATTR matd_utriangle_solve(matd_t *u, const float *b, float *x);
 
 
-float matd_max(matd_t *m);
+float IRAM_ATTR matd_max(matd_t *m);
 
 #ifdef __cplusplus
 }

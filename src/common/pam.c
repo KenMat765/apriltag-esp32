@@ -32,7 +32,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include "pam.h"
 
-pam_t *pam_create_from_file(const char *inpath)
+pam_t IRAM_ATTR *pam_create_from_file(const char *inpath)
 {
     FILE *infile = fopen(inpath, "r");
     if (infile == NULL) {
@@ -155,7 +155,7 @@ pam_t *pam_create_from_file(const char *inpath)
     return NULL;
 }
 
-int pam_write_file(pam_t *pam, const char *outpath)
+int IRAM_ATTR pam_write_file(pam_t *pam, const char *outpath)
 {
     FILE *f = fopen(outpath, "w+");
     if (!f)
@@ -192,7 +192,7 @@ int pam_write_file(pam_t *pam, const char *outpath)
     return 0;
 }
 
-void pam_destroy(pam_t *pam)
+void IRAM_ATTR pam_destroy(pam_t *pam)
 {
     if (!pam)
         return;
@@ -201,7 +201,7 @@ void pam_destroy(pam_t *pam)
     free(pam);
 }
 
-pam_t *pam_copy(pam_t *pam)
+pam_t IRAM_ATTR *pam_copy(pam_t *pam)
 {
     pam_t *copy = calloc(1, sizeof(pam_t));
     copy->width = pam->width;
@@ -217,7 +217,7 @@ pam_t *pam_copy(pam_t *pam)
     return copy;
 }
 
-pam_t *pam_convert(pam_t *in, int type)
+pam_t IRAM_ATTR *pam_convert(pam_t *in, int type)
 {
     if (type == in->type)
         return pam_copy(in);

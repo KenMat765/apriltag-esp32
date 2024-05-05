@@ -62,7 +62,7 @@ struct task
     void *p;
 };
 
-void *worker_thread(void *p)
+void IRAM_ATTR *worker_thread(void *p)
 {
     workerpool_t *wp = (workerpool_t*) p;
 
@@ -91,7 +91,7 @@ void *worker_thread(void *p)
     return NULL;
 }
 
-workerpool_t *workerpool_create(int nthreads)
+workerpool_t IRAM_ATTR *workerpool_create(int nthreads)
 {
     assert(nthreads > 0);
 
@@ -119,7 +119,7 @@ workerpool_t *workerpool_create(int nthreads)
     return wp;
 }
 
-void workerpool_destroy(workerpool_t *wp)
+void IRAM_ATTR workerpool_destroy(workerpool_t *wp)
 {
     if (wp == NULL)
         return;
@@ -146,12 +146,12 @@ void workerpool_destroy(workerpool_t *wp)
     free(wp);
 }
 
-int workerpool_get_nthreads(workerpool_t *wp)
+int IRAM_ATTR workerpool_get_nthreads(workerpool_t *wp)
 {
     return wp->nthreads;
 }
 
-void workerpool_add_task(workerpool_t *wp, void (*f)(void *p), void *p)
+void IRAM_ATTR workerpool_add_task(workerpool_t *wp, void (*f)(void *p), void *p)
 {
     struct task t;
     t.f = f;
@@ -160,7 +160,7 @@ void workerpool_add_task(workerpool_t *wp, void (*f)(void *p), void *p)
     zarray_add(wp->tasks, &t);
 }
 
-void workerpool_run_single(workerpool_t *wp)
+void IRAM_ATTR workerpool_run_single(workerpool_t *wp)
 {
     for (int i = 0; i < zarray_size(wp->tasks); i++) {
         struct task *task;
@@ -172,7 +172,7 @@ void workerpool_run_single(workerpool_t *wp)
 }
 
 // runs all added tasks, waits for them to complete.
-void workerpool_run(workerpool_t *wp)
+void IRAM_ATTR workerpool_run(workerpool_t *wp)
 {
     if (wp->nthreads > 1) {
         wp->end_count = 0;
@@ -196,7 +196,7 @@ void workerpool_run(workerpool_t *wp)
     }
 }
 
-int workerpool_get_nprocs()
+int IRAM_ATTR workerpool_get_nprocs()
 {
 #ifdef WIN32
     SYSTEM_INFO sysinfo;

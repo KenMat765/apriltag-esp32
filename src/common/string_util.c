@@ -44,7 +44,7 @@ struct string_buffer
 
 #define MIN_PRINTF_ALLOC 16
 
-char *sprintf_alloc(const char *fmt, ...)
+char IRAM_ATTR *sprintf_alloc(const char *fmt, ...)
 {
     assert(fmt != NULL);
 
@@ -57,7 +57,7 @@ char *sprintf_alloc(const char *fmt, ...)
     return buf;
 }
 
-char *vsprintf_alloc(const char *fmt, va_list orig_args)
+char IRAM_ATTR *vsprintf_alloc(const char *fmt, va_list orig_args)
 {
     assert(fmt != NULL);
 
@@ -89,7 +89,7 @@ char *vsprintf_alloc(const char *fmt, va_list orig_args)
     return buf;
 }
 
-char *_str_concat_private(const char *first, ...)
+char IRAM_ATTR *_str_concat_private(const char *first, ...)
 {
     size_t len = 0;
 
@@ -125,7 +125,7 @@ char *_str_concat_private(const char *first, ...)
 }
 
 // Returns the index of the first character that differs:
-int str_diff_idx(const char * a, const char * b)
+int IRAM_ATTR str_diff_idx(const char * a, const char * b)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -145,7 +145,7 @@ int str_diff_idx(const char * a, const char * b)
 }
 
 
-zarray_t *str_split(const char *str, const char *delim)
+zarray_t IRAM_ATTR *str_split(const char *str, const char *delim)
 {
     assert(str != NULL);
     assert(delim != NULL);
@@ -182,7 +182,7 @@ zarray_t *str_split(const char *str, const char *delim)
 }
 
 // split on one or more spaces.
-zarray_t *str_split_spaces(const char *str)
+zarray_t IRAM_ATTR *str_split_spaces(const char *str)
 {
   zarray_t *parts = zarray_create(sizeof(char*));
   size_t len = strlen(str);
@@ -212,7 +212,7 @@ zarray_t *str_split_spaces(const char *str)
   return parts;
 }
 
-void str_split_destroy(zarray_t *za)
+void IRAM_ATTR str_split_destroy(zarray_t *za)
 {
     if (!za)
         return;
@@ -221,14 +221,14 @@ void str_split_destroy(zarray_t *za)
     zarray_destroy(za);
 }
 
-char *str_trim(char *str)
+char IRAM_ATTR *str_trim(char *str)
 {
     assert(str != NULL);
 
     return str_lstrip(str_rstrip(str));
 }
 
-char *str_lstrip(char *str)
+char IRAM_ATTR *str_lstrip(char *str)
 {
     assert(str != NULL);
 
@@ -240,7 +240,7 @@ char *str_lstrip(char *str)
     return str;
 }
 
-char *str_rstrip(char *str)
+char IRAM_ATTR *str_rstrip(char *str)
 {
     assert(str != NULL);
 
@@ -250,7 +250,7 @@ char *str_rstrip(char *str)
     return str;
 }
 
-int str_indexof(const char *haystack, const char *needle)
+int IRAM_ATTR str_indexof(const char *haystack, const char *needle)
 {
 	assert(haystack != NULL);
 	assert(needle != NULL);
@@ -269,7 +269,7 @@ int str_indexof(const char *haystack, const char *needle)
     return -1;
 }
 
-int str_last_indexof(const char *haystack, const char *needle)
+int IRAM_ATTR str_last_indexof(const char *haystack, const char *needle)
 {
 	assert(haystack != NULL);
 	assert(needle != NULL);
@@ -288,7 +288,7 @@ int str_last_indexof(const char *haystack, const char *needle)
 }
 
 // in-place modification.
-char *str_tolowercase(char *s)
+char IRAM_ATTR *str_tolowercase(char *s)
 {
 	assert(s != NULL);
 
@@ -301,7 +301,7 @@ char *str_tolowercase(char *s)
     return s;
 }
 
-char *str_touppercase(char *s)
+char IRAM_ATTR *str_touppercase(char *s)
 {
     assert(s != NULL);
 
@@ -314,7 +314,7 @@ char *str_touppercase(char *s)
     return s;
 }
 
-string_buffer_t* string_buffer_create()
+string_buffer_t* IRAM_ATTR string_buffer_create()
 {
     string_buffer_t *sb = (string_buffer_t*) calloc(1, sizeof(string_buffer_t));
     assert(sb != NULL);
@@ -323,7 +323,7 @@ string_buffer_t* string_buffer_create()
     return sb;
 }
 
-void string_buffer_destroy(string_buffer_t *sb)
+void IRAM_ATTR string_buffer_destroy(string_buffer_t *sb)
 {
     if (sb == NULL)
         return;
@@ -335,7 +335,7 @@ void string_buffer_destroy(string_buffer_t *sb)
     free(sb);
 }
 
-void string_buffer_append(string_buffer_t *sb, char c)
+void IRAM_ATTR string_buffer_append(string_buffer_t *sb, char c)
 {
     assert(sb != NULL);
 
@@ -348,7 +348,7 @@ void string_buffer_append(string_buffer_t *sb, char c)
     sb->s[sb->size] = 0;
 }
 
-char string_buffer_pop_back(string_buffer_t *sb) {
+char IRAM_ATTR string_buffer_pop_back(string_buffer_t *sb) {
     assert(sb != NULL);
     if (sb->size == 0)
         return 0;
@@ -358,7 +358,7 @@ char string_buffer_pop_back(string_buffer_t *sb) {
     return back;
 }
 
-void string_buffer_appendf(string_buffer_t *sb, const char *fmt, ...)
+void IRAM_ATTR string_buffer_appendf(string_buffer_t *sb, const char *fmt, ...)
 {
     assert(sb != NULL);
     assert(fmt != NULL);
@@ -390,7 +390,7 @@ void string_buffer_appendf(string_buffer_t *sb, const char *fmt, ...)
     free(buf);
 }
 
-void string_buffer_append_string(string_buffer_t *sb, const char *str)
+void IRAM_ATTR string_buffer_append_string(string_buffer_t *sb, const char *str)
 {
     assert(sb != NULL);
     assert(str != NULL);
@@ -407,7 +407,7 @@ void string_buffer_append_string(string_buffer_t *sb, const char *str)
     sb->s[sb->size] = 0;
 }
 
-bool string_buffer_ends_with(string_buffer_t *sb, const char *str)
+bool IRAM_ATTR string_buffer_ends_with(string_buffer_t *sb, const char *str)
 {
     assert(sb != NULL);
     assert(str != NULL);
@@ -415,7 +415,7 @@ bool string_buffer_ends_with(string_buffer_t *sb, const char *str)
     return str_ends_with(sb->s, str);
 }
 
-char *string_buffer_to_string(string_buffer_t *sb)
+char IRAM_ATTR *string_buffer_to_string(string_buffer_t *sb)
 {
     assert(sb != NULL);
 
@@ -423,14 +423,14 @@ char *string_buffer_to_string(string_buffer_t *sb)
 }
 
 // returns length of string (not counting \0)
-size_t string_buffer_size(string_buffer_t *sb)
+size_t IRAM_ATTR string_buffer_size(string_buffer_t *sb)
 {
     assert(sb != NULL);
 
     return sb->size;
 }
 
-void string_buffer_reset(string_buffer_t *sb)
+void IRAM_ATTR string_buffer_reset(string_buffer_t *sb)
 {
     assert(sb != NULL);
 
@@ -438,7 +438,7 @@ void string_buffer_reset(string_buffer_t *sb)
     sb->size = 0;
 }
 
-string_feeder_t *string_feeder_create(const char *str)
+string_feeder_t IRAM_ATTR *string_feeder_create(const char *str)
 {
     assert(str != NULL);
 
@@ -451,19 +451,19 @@ string_feeder_t *string_feeder_create(const char *str)
     return sf;
 }
 
-int string_feeder_get_line(string_feeder_t *sf)
+int IRAM_ATTR string_feeder_get_line(string_feeder_t *sf)
 {
     assert(sf != NULL);
     return sf->line;
 }
 
-int string_feeder_get_column(string_feeder_t *sf)
+int IRAM_ATTR string_feeder_get_column(string_feeder_t *sf)
 {
     assert(sf != NULL);
     return sf->col;
 }
 
-void string_feeder_destroy(string_feeder_t *sf)
+void IRAM_ATTR string_feeder_destroy(string_feeder_t *sf)
 {
     if (sf == NULL)
         return;
@@ -473,14 +473,14 @@ void string_feeder_destroy(string_feeder_t *sf)
     free(sf);
 }
 
-bool string_feeder_has_next(string_feeder_t *sf)
+bool IRAM_ATTR string_feeder_has_next(string_feeder_t *sf)
 {
     assert(sf != NULL);
 
     return sf->s[sf->pos] != 0 && sf->pos <= sf->len;
 }
 
-char string_feeder_next(string_feeder_t *sf)
+char IRAM_ATTR string_feeder_next(string_feeder_t *sf)
 {
     assert(sf != NULL);
     assert(sf->pos <= sf->len);
@@ -496,7 +496,7 @@ char string_feeder_next(string_feeder_t *sf)
     return c;
 }
 
-char *string_feeder_next_length(string_feeder_t *sf, size_t length)
+char IRAM_ATTR *string_feeder_next_length(string_feeder_t *sf, size_t length)
 {
     assert(sf != NULL);
     assert(sf->pos <= sf->len);
@@ -510,7 +510,7 @@ char *string_feeder_next_length(string_feeder_t *sf, size_t length)
     return substr;
 }
 
-char string_feeder_peek(string_feeder_t *sf)
+char IRAM_ATTR string_feeder_peek(string_feeder_t *sf)
 {
     assert(sf != NULL);
     assert(sf->pos <= sf->len);
@@ -518,7 +518,7 @@ char string_feeder_peek(string_feeder_t *sf)
     return sf->s[sf->pos];
 }
 
-char *string_feeder_peek_length(string_feeder_t *sf, size_t length)
+char IRAM_ATTR *string_feeder_peek_length(string_feeder_t *sf, size_t length)
 {
     assert(sf != NULL);
     assert(sf->pos <= sf->len);
@@ -531,7 +531,7 @@ char *string_feeder_peek_length(string_feeder_t *sf, size_t length)
     return substr;
 }
 
-bool string_feeder_starts_with(string_feeder_t *sf, const char *str)
+bool IRAM_ATTR string_feeder_starts_with(string_feeder_t *sf, const char *str)
 {
     assert(sf != NULL);
     assert(str != NULL);
@@ -540,7 +540,7 @@ bool string_feeder_starts_with(string_feeder_t *sf, const char *str)
     return str_starts_with(&sf->s[sf->pos], str);
 }
 
-void string_feeder_require(string_feeder_t *sf, const char *str)
+void IRAM_ATTR string_feeder_require(string_feeder_t *sf, const char *str)
 {
     assert(sf != NULL);
     assert(str != NULL);
@@ -556,7 +556,7 @@ void string_feeder_require(string_feeder_t *sf, const char *str)
 }
 
 ////////////////////////////////////////////
-bool str_ends_with(const char *haystack, const char *needle)
+bool IRAM_ATTR str_ends_with(const char *haystack, const char *needle)
 {
     assert(haystack != NULL);
     assert(needle != NULL);
@@ -573,7 +573,7 @@ bool str_ends_with(const char *haystack, const char *needle)
 #ifndef _MSC_VER
 inline
 #endif
-bool str_starts_with(const char *haystack, const char *needle)
+bool IRAM_ATTR str_starts_with(const char *haystack, const char *needle)
 {
     assert(haystack != NULL);
     assert(needle != NULL);
@@ -589,7 +589,7 @@ bool str_starts_with(const char *haystack, const char *needle)
     return (needle[pos] == 0);
 }
 
-bool str_starts_with_any(const char *haystack, const char **needles, int num_needles)
+bool IRAM_ATTR str_starts_with_any(const char *haystack, const char **needles, int num_needles)
 {
     assert(haystack != NULL);
     assert(needles != NULL);
@@ -604,7 +604,7 @@ bool str_starts_with_any(const char *haystack, const char **needles, int num_nee
     return false;
 }
 
-bool str_matches_any(const char *haystack, const char **needles, int num_needles)
+bool IRAM_ATTR str_matches_any(const char *haystack, const char **needles, int num_needles)
 {
     assert(haystack != NULL);
     assert(needles != NULL);
@@ -619,7 +619,7 @@ bool str_matches_any(const char *haystack, const char **needles, int num_needles
     return false;
 }
 
-char *str_substring(const char *str, size_t startidx, size_t endidx)
+char IRAM_ATTR *str_substring(const char *str, size_t startidx, size_t endidx)
 {
     assert(str != NULL);
     assert(startidx <= strlen(str)+1);
@@ -633,7 +633,7 @@ char *str_substring(const char *str, size_t startidx, size_t endidx)
     return b;
 }
 
-char *str_replace(const char *haystack, const char *needle, const char *replacement)
+char IRAM_ATTR *str_replace(const char *haystack, const char *needle, const char *replacement)
 {
     assert(haystack != NULL);
     assert(needle != NULL);
@@ -661,7 +661,7 @@ char *str_replace(const char *haystack, const char *needle, const char *replacem
     return res;
 }
 
-char *str_replace_many(const char *_haystack, ...)
+char IRAM_ATTR *str_replace_many(const char *_haystack, ...)
 {
     va_list ap;
     va_start(ap, _haystack);
@@ -684,7 +684,7 @@ char *str_replace_many(const char *_haystack, ...)
     return haystack;
 }
 
-static void buffer_appendf(char **_buf, int *bufpos, void *fmt, ...)
+static void IRAM_ATTR buffer_appendf(char **_buf, int *bufpos, void *fmt, ...)
 {
     char *buf = *_buf;
     va_list ap;
@@ -712,7 +712,7 @@ static void buffer_appendf(char **_buf, int *bufpos, void *fmt, ...)
     free(s);
 }
 
-static int is_variable_character(char c)
+static int IRAM_ATTR is_variable_character(char c)
 {
     if (c >= 'a' && c <= 'z')
         return 1;
@@ -729,7 +729,7 @@ static int is_variable_character(char c)
     return 0;
 }
 
-char *str_expand_envs(const char *in)
+char IRAM_ATTR *str_expand_envs(const char *in)
 {
     size_t inlen = strlen(in);
     size_t inpos = 0;

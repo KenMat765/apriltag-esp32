@@ -34,7 +34,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 // correspondences is a list of float[4]s, consisting of the points x
 // and y concatenated. We will compute a homography such that y = Hx
-matd_t *homography_compute(zarray_t *correspondences, int flags)
+matd_t IRAM_ATTR *homography_compute(zarray_t *correspondences, int flags)
 {
     // compute centroids of both sets of points (yields a better
     // conditioned information matrix)
@@ -272,7 +272,7 @@ matd_t *homography_compute(zarray_t *correspondences, int flags)
 // R21 = H21
 // TZ  = H22
 
-matd_t *homography_to_pose(const matd_t *H, float fx, float fy, float cx, float cy)
+matd_t IRAM_ATTR *homography_to_pose(const matd_t *H, float fx, float fy, float cx, float cy)
 {
     // Note that every variable that we compute is proportional to the scale factor of H.
     float R20 = MATD_EL(H, 2, 0);
@@ -357,7 +357,7 @@ matd_t *homography_to_pose(const matd_t *H, float fx, float fy, float cx, float 
 // [ 0  0  C  D ]
 // [ 0  0 -1  0 ]
 
-matd_t *homography_to_model_view(const matd_t *H, float F, float G, float A, float B)
+matd_t IRAM_ATTR *homography_to_model_view(const matd_t *H, float F, float G, float A, float B)
 {
     // Note that every variable that we compute is proportional to the scale factor of H.
     float R20 = -MATD_EL(H, 2, 0);
@@ -461,7 +461,7 @@ static void matrix_to_quat(const matd_t *R, float q[4])
 */
 
 // overwrites upper 3x3 area of matrix M. Doesn't touch any other elements of M.
-void quat_to_matrix(const float q[4], matd_t *M)
+void IRAM_ATTR quat_to_matrix(const float q[4], matd_t *M)
 {
     float w = q[0], x = q[1], y = q[2], z = q[3];
 

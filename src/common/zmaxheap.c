@@ -35,6 +35,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "zmaxheap.h"
 #include "debug_print.h"
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 #ifdef _WIN32
 static inline long int random(void)
 {
@@ -67,7 +75,7 @@ struct zmaxheap
     void (*swap)(zmaxheap_t *heap, int a, int b);
 };
 
-static inline void swap_default(zmaxheap_t *heap, int a, int b)
+static inline void IRAM_ATTR swap_default(zmaxheap_t *heap, int a, int b)
 {
     float t = heap->values[a];
     heap->values[a] = heap->values[b];
@@ -80,7 +88,7 @@ static inline void swap_default(zmaxheap_t *heap, int a, int b)
     free(tmp);
 }
 
-static inline void swap_pointer(zmaxheap_t *heap, int a, int b)
+static inline void IRAM_ATTR swap_pointer(zmaxheap_t *heap, int a, int b)
 {
     float t = heap->values[a];
     heap->values[a] = heap->values[b];
@@ -93,7 +101,7 @@ static inline void swap_pointer(zmaxheap_t *heap, int a, int b)
 }
 
 
-zmaxheap_t *zmaxheap_create(size_t el_sz)
+zmaxheap_t IRAM_ATTR *zmaxheap_create(size_t el_sz)
 {
     zmaxheap_t *heap = calloc(1, sizeof(zmaxheap_t));
     heap->el_sz = el_sz;
@@ -106,7 +114,7 @@ zmaxheap_t *zmaxheap_create(size_t el_sz)
     return heap;
 }
 
-void zmaxheap_destroy(zmaxheap_t *heap)
+void IRAM_ATTR zmaxheap_destroy(zmaxheap_t *heap)
 {
     free(heap->values);
     free(heap->data);
@@ -114,12 +122,12 @@ void zmaxheap_destroy(zmaxheap_t *heap)
     free(heap);
 }
 
-int zmaxheap_size(zmaxheap_t *heap)
+int IRAM_ATTR zmaxheap_size(zmaxheap_t *heap)
 {
     return heap->size;
 }
 
-void zmaxheap_ensure_capacity(zmaxheap_t *heap, int capacity)
+void IRAM_ATTR zmaxheap_ensure_capacity(zmaxheap_t *heap, int capacity)
 {
     if (heap->alloc >= capacity)
         return;
@@ -140,7 +148,7 @@ void zmaxheap_ensure_capacity(zmaxheap_t *heap, int capacity)
     heap->alloc = newcap;
 }
 
-void zmaxheap_add(zmaxheap_t *heap, void *p, float v)
+void IRAM_ATTR zmaxheap_add(zmaxheap_t *heap, void *p, float v)
 {
 
     assert (isfinite(v) && "zmaxheap_add: Trying to add non-finite number to heap.  NaN's prohibited, could allow INF with testing");
@@ -167,7 +175,7 @@ void zmaxheap_add(zmaxheap_t *heap, void *p, float v)
     }
 }
 
-void zmaxheap_vmap(zmaxheap_t *heap, void (*f)(void*))
+void IRAM_ATTR zmaxheap_vmap(zmaxheap_t *heap, void (*f)(void*))
 {
     assert(heap != NULL);
     assert(f != NULL);
@@ -186,7 +194,7 @@ void zmaxheap_vmap(zmaxheap_t *heap, void (*f)(void*))
 // Removes the item in the heap at the given index.  Returns 1 if the
 // item existed. 0 Indicates an invalid idx (heap is smaller than
 // idx). This is mostly intended to be used by zmaxheap_remove_max.
-int zmaxheap_remove_index(zmaxheap_t *heap, int idx, void *p, float *v)
+int IRAM_ATTR zmaxheap_remove_index(zmaxheap_t *heap, int idx, void *p, float *v)
 {
     if (idx >= heap->size)
         return 0;
@@ -248,12 +256,12 @@ int zmaxheap_remove_index(zmaxheap_t *heap, int idx, void *p, float *v)
     return 1;
 }
 
-int zmaxheap_remove_max(zmaxheap_t *heap, void *p, float *v)
+int IRAM_ATTR zmaxheap_remove_max(zmaxheap_t *heap, void *p, float *v)
 {
     return zmaxheap_remove_index(heap, 0, p, v);
 }
 
-void zmaxheap_iterator_init(zmaxheap_t *heap, zmaxheap_iterator_t *it)
+void IRAM_ATTR zmaxheap_iterator_init(zmaxheap_t *heap, zmaxheap_iterator_t *it)
 {
     memset(it, 0, sizeof(zmaxheap_iterator_t));
     it->heap = heap;
@@ -261,7 +269,7 @@ void zmaxheap_iterator_init(zmaxheap_t *heap, zmaxheap_iterator_t *it)
     it->out = 0;
 }
 
-int zmaxheap_iterator_next(zmaxheap_iterator_t *it, void *p, float *v)
+int IRAM_ATTR zmaxheap_iterator_next(zmaxheap_iterator_t *it, void *p, float *v)
 {
     zmaxheap_t *heap = it->heap;
 
@@ -281,7 +289,7 @@ int zmaxheap_iterator_next(zmaxheap_iterator_t *it, void *p, float *v)
     return 1;
 }
 
-int zmaxheap_iterator_next_volatile(zmaxheap_iterator_t *it, void *p, float *v)
+int IRAM_ATTR zmaxheap_iterator_next_volatile(zmaxheap_iterator_t *it, void *p, float *v)
 {
     zmaxheap_t *heap = it->heap;
 
@@ -301,12 +309,12 @@ int zmaxheap_iterator_next_volatile(zmaxheap_iterator_t *it, void *p, float *v)
     return 1;
 }
 
-void zmaxheap_iterator_remove(zmaxheap_iterator_t *it)
+void IRAM_ATTR zmaxheap_iterator_remove(zmaxheap_iterator_t *it)
 {
     it->out--;
 }
 
-static void maxheapify(zmaxheap_t *heap, int parent)
+static void IRAM_ATTR maxheapify(zmaxheap_t *heap, int parent)
 {
     int left = 2*parent + 1;
     int right = 2*parent + 2;
@@ -342,7 +350,7 @@ static void validate(zmaxheap_t *heap)
     }
 }
 #endif
-void zmaxheap_iterator_finish(zmaxheap_iterator_t *it)
+void IRAM_ATTR zmaxheap_iterator_finish(zmaxheap_iterator_t *it)
 {
     // if nothing was removed, no work to do.
     if (it->in == it->out)
@@ -357,7 +365,7 @@ void zmaxheap_iterator_finish(zmaxheap_iterator_t *it)
         maxheapify(heap, i);
 }
 
-void zmaxheap_test()
+void IRAM_ATTR zmaxheap_test()
 {
     int cap = 10000;
     int sz = 0;

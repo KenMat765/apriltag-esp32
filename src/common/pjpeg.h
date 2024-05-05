@@ -30,6 +30,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "image_u8.h"
 #include "image_u8x3.h"
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -91,12 +99,12 @@ enum PJPEG_ERROR {
     PJEPG_ERR_UNSUPPORTED, // an unsupported format
 };
 
-pjpeg_t *pjpeg_create_from_file(const char *path, uint32_t flags, int *error);
-pjpeg_t *pjpeg_create_from_buffer(uint8_t *buf, int buflen, uint32_t flags, int *error);
-void pjpeg_destroy(pjpeg_t *pj);
+pjpeg_t IRAM_ATTR *pjpeg_create_from_file(const char *path, uint32_t flags, int *error);
+pjpeg_t IRAM_ATTR *pjpeg_create_from_buffer(uint8_t *buf, int buflen, uint32_t flags, int *error);
+void IRAM_ATTR pjpeg_destroy(pjpeg_t *pj);
 
-image_u8_t *pjpeg_to_u8_baseline(pjpeg_t *pj);
-image_u8x3_t *pjpeg_to_u8x3_baseline(pjpeg_t *pj);
+image_u8_t IRAM_ATTR *pjpeg_to_u8_baseline(pjpeg_t *pj);
+image_u8x3_t IRAM_ATTR *pjpeg_to_u8x3_baseline(pjpeg_t *pj);
 
 #ifdef __cplusplus
 }

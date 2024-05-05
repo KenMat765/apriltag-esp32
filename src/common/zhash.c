@@ -54,7 +54,7 @@ struct zhash
     int  nentries; // how many entries are allocated? Never 0.
 };
 
-zhash_t *zhash_create_capacity(size_t keysz, size_t valuesz,
+zhash_t IRAM_ATTR *zhash_create_capacity(size_t keysz, size_t valuesz,
                                uint32_t(*hash)(const void *a), int(*equals)(const void *a, const void*b),
                                int capacity)
 {
@@ -88,13 +88,13 @@ zhash_t *zhash_create_capacity(size_t keysz, size_t valuesz,
     return zh;
 }
 
-zhash_t *zhash_create(size_t keysz, size_t valuesz,
+zhash_t IRAM_ATTR *zhash_create(size_t keysz, size_t valuesz,
                       uint32_t(*hash)(const void *a), int(*equals)(const void *a, const void *b))
 {
     return zhash_create_capacity(keysz, valuesz, hash, equals, 8);
 }
 
-void zhash_destroy(zhash_t *zh)
+void IRAM_ATTR zhash_destroy(zhash_t *zh)
 {
     if (zh == NULL)
         return;
@@ -103,18 +103,18 @@ void zhash_destroy(zhash_t *zh)
     free(zh);
 }
 
-int zhash_size(const zhash_t *zh)
+int IRAM_ATTR zhash_size(const zhash_t *zh)
 {
     return zh->size;
 }
 
-void zhash_clear(zhash_t *zh)
+void IRAM_ATTR zhash_clear(zhash_t *zh)
 {
     memset(zh->entries, 0, zh->nentries * zh->entrysz);
     zh->size = 0;
 }
 
-int zhash_get_volatile(const zhash_t *zh, const void *key, void *out_value)
+int IRAM_ATTR zhash_get_volatile(const zhash_t *zh, const void *key, void *out_value)
 {
     uint32_t code = zh->hash(key);
     uint32_t entry_idx = code & (zh->nentries - 1);
@@ -132,7 +132,7 @@ int zhash_get_volatile(const zhash_t *zh, const void *key, void *out_value)
     return 0;
 }
 
-int zhash_get(const zhash_t *zh, const void *key, void *out_value)
+int IRAM_ATTR zhash_get(const zhash_t *zh, const void *key, void *out_value)
 {
     void *tmp;
     if (zhash_get_volatile(zh, key, &tmp)) {
@@ -143,7 +143,7 @@ int zhash_get(const zhash_t *zh, const void *key, void *out_value)
     return 0;
 }
 
-int zhash_put(zhash_t *zh, const void *key, const void *value, void *oldkey, void *oldvalue)
+int IRAM_ATTR zhash_put(zhash_t *zh, const void *key, const void *value, void *oldkey, void *oldvalue)
 {
     uint32_t code = zh->hash(key);
     uint32_t entry_idx = code & (zh->nentries - 1);
@@ -199,7 +199,7 @@ int zhash_put(zhash_t *zh, const void *key, const void *value, void *oldkey, voi
     return 0;
 }
 
-int zhash_remove(zhash_t *zh, const void *key, void *old_key, void *old_value)
+int IRAM_ATTR zhash_remove(zhash_t *zh, const void *key, void *old_key, void *old_value)
 {
     uint32_t code = zh->hash(key);
     uint32_t entry_idx = code & (zh->nentries - 1);
@@ -245,7 +245,7 @@ int zhash_remove(zhash_t *zh, const void *key, void *old_key, void *old_value)
     return 0;
 }
 
-zhash_t *zhash_copy(const zhash_t *zh)
+zhash_t IRAM_ATTR *zhash_copy(const zhash_t *zh)
 {
     zhash_t *newhash = zhash_create_capacity(zh->keysz, zh->valuesz,
                                              zh->hash, zh->equals,
@@ -263,27 +263,27 @@ zhash_t *zhash_copy(const zhash_t *zh)
     return newhash;
 }
 
-int zhash_contains(const zhash_t *zh, const void *key)
+int IRAM_ATTR zhash_contains(const zhash_t *zh, const void *key)
 {
     void *tmp;
     return zhash_get_volatile(zh, key, &tmp);
 }
 
-void zhash_iterator_init(zhash_t *zh, zhash_iterator_t *zit)
+void IRAM_ATTR zhash_iterator_init(zhash_t *zh, zhash_iterator_t *zit)
 {
     zit->zh = zh;
     zit->czh = zh;
     zit->last_entry = -1;
 }
 
-void zhash_iterator_init_const(const zhash_t *zh, zhash_iterator_t *zit)
+void IRAM_ATTR zhash_iterator_init_const(const zhash_t *zh, zhash_iterator_t *zit)
 {
     zit->zh = NULL;
     zit->czh = zh;
     zit->last_entry = -1;
 }
 
-int zhash_iterator_next_volatile(zhash_iterator_t *zit, void *outkey, void *outvalue)
+int IRAM_ATTR zhash_iterator_next_volatile(zhash_iterator_t *zit, void *outkey, void *outvalue)
 {
     const zhash_t *zh = zit->czh;
 
@@ -307,7 +307,7 @@ int zhash_iterator_next_volatile(zhash_iterator_t *zit, void *outkey, void *outv
     }
 }
 
-int zhash_iterator_next(zhash_iterator_t *zit, void *outkey, void *outvalue)
+int IRAM_ATTR zhash_iterator_next(zhash_iterator_t *zit, void *outkey, void *outvalue)
 {
     const zhash_t *zh = zit->czh;
 
@@ -324,7 +324,7 @@ int zhash_iterator_next(zhash_iterator_t *zit, void *outkey, void *outvalue)
     return 1;
 }
 
-void zhash_iterator_remove(zhash_iterator_t *zit)
+void IRAM_ATTR zhash_iterator_remove(zhash_iterator_t *zit)
 {
     assert(zit->zh); // can't call _remove on a iterator with const zhash
     zhash_t *zh = zit->zh;
@@ -352,7 +352,7 @@ void zhash_iterator_remove(zhash_iterator_t *zit)
     zit->last_entry--;
 }
 
-void zhash_map_keys(zhash_t *zh, void (*f)(void*))
+void IRAM_ATTR zhash_map_keys(zhash_t *zh, void (*f)(void*))
 {
     assert(zh != NULL);
     if (f == NULL)
@@ -368,7 +368,7 @@ void zhash_map_keys(zhash_t *zh, void (*f)(void*))
     }
 }
 
-void zhash_vmap_keys(zhash_t * zh, void (*f)(void*))
+void IRAM_ATTR zhash_vmap_keys(zhash_t * zh, void (*f)(void*))
 {
     assert(zh != NULL);
     if (f == NULL)
@@ -385,7 +385,7 @@ void zhash_vmap_keys(zhash_t * zh, void (*f)(void*))
     }
 }
 
-void zhash_map_values(zhash_t * zh, void (*f)(void*))
+void IRAM_ATTR zhash_map_values(zhash_t * zh, void (*f)(void*))
 {
     assert(zh != NULL);
     if (f == NULL)
@@ -400,7 +400,7 @@ void zhash_map_values(zhash_t * zh, void (*f)(void*))
     }
 }
 
-void zhash_vmap_values(zhash_t * zh, void (*f)(void*))
+void IRAM_ATTR zhash_vmap_values(zhash_t * zh, void (*f)(void*))
 {
     assert(zh != NULL);
     if (f == NULL)
@@ -416,7 +416,7 @@ void zhash_vmap_values(zhash_t * zh, void (*f)(void*))
     }
 }
 
-zarray_t *zhash_keys(const zhash_t *zh)
+zarray_t IRAM_ATTR *zhash_keys(const zhash_t *zh)
 {
     assert(zh != NULL);
 
@@ -433,7 +433,7 @@ zarray_t *zhash_keys(const zhash_t *zh)
     return za;
 }
 
-zarray_t *zhash_values(const zhash_t *zh)
+zarray_t IRAM_ATTR *zhash_values(const zhash_t *zh)
 {
     assert(zh != NULL);
 
@@ -451,7 +451,7 @@ zarray_t *zhash_values(const zhash_t *zh)
 }
 
 
-uint32_t zhash_uint32_hash(const void *_a)
+uint32_t IRAM_ATTR zhash_uint32_hash(const void *_a)
 {
     assert(_a != NULL);
 
@@ -459,7 +459,7 @@ uint32_t zhash_uint32_hash(const void *_a)
     return a;
 }
 
-int zhash_uint32_equals(const void *_a, const void *_b)
+int IRAM_ATTR zhash_uint32_equals(const void *_a, const void *_b)
 {
     assert(_a != NULL);
     assert(_b != NULL);
@@ -470,7 +470,7 @@ int zhash_uint32_equals(const void *_a, const void *_b)
     return a==b;
 }
 
-uint32_t zhash_uint64_hash(const void *_a)
+uint32_t IRAM_ATTR zhash_uint64_hash(const void *_a)
 {
     assert(_a != NULL);
 
@@ -478,7 +478,7 @@ uint32_t zhash_uint64_hash(const void *_a)
     return (uint32_t) (a ^ (a >> 32));
 }
 
-int zhash_uint64_equals(const void *_a, const void *_b)
+int IRAM_ATTR zhash_uint64_equals(const void *_a, const void *_b)
 {
     assert(_a != NULL);
     assert(_b != NULL);
@@ -496,7 +496,7 @@ union uintpointer
     uint32_t i;
 };
 
-uint32_t zhash_ptr_hash(const void *a)
+uint32_t IRAM_ATTR zhash_ptr_hash(const void *a)
 {
     assert(a != NULL);
 
@@ -511,7 +511,7 @@ uint32_t zhash_ptr_hash(const void *a)
 }
 
 
-int zhash_ptr_equals(const void *a, const void *b)
+int IRAM_ATTR zhash_ptr_equals(const void *a, const void *b)
 {
     assert(a != NULL);
     assert(b != NULL);
@@ -522,7 +522,7 @@ int zhash_ptr_equals(const void *a, const void *b)
 }
 
 
-int zhash_str_equals(const void *_a, const void *_b)
+int IRAM_ATTR zhash_str_equals(const void *_a, const void *_b)
 {
     assert(_a != NULL);
     assert(_b != NULL);
@@ -533,7 +533,7 @@ int zhash_str_equals(const void *_a, const void *_b)
     return !strcmp(a, b);
 }
 
-uint32_t zhash_str_hash(const void *_a)
+uint32_t IRAM_ATTR zhash_str_hash(const void *_a)
 {
     assert(_a != NULL);
 
@@ -551,7 +551,7 @@ uint32_t zhash_str_hash(const void *_a)
 }
 
 
-void zhash_debug(zhash_t *zh)
+void IRAM_ATTR zhash_debug(zhash_t *zh)
 {
     for (int entry_idx = 0; entry_idx < zh->nentries; entry_idx++) {
         char *k, *v;

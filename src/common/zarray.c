@@ -30,7 +30,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include "zarray.h"
 
-int zstrcmp(const void * a_pp, const void * b_pp)
+int IRAM_ATTR zstrcmp(const void * a_pp, const void * b_pp)
 {
     assert(a_pp != NULL);
     assert(b_pp != NULL);
@@ -41,7 +41,7 @@ int zstrcmp(const void * a_pp, const void * b_pp)
     return strcmp(a,b);
 }
 
-void zarray_vmap(zarray_t *za, void (*f)(void*))
+void IRAM_ATTR zarray_vmap(zarray_t *za, void (*f)(void*))
 {
     assert(za != NULL);
     assert(f != NULL);

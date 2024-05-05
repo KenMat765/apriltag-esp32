@@ -30,6 +30,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stdint.h>
 #include "image_types.h"
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

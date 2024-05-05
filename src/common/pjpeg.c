@@ -39,9 +39,9 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 // https://www.w3.org/Graphics/JPEG/itu-t81.pdf
 
-void pjpeg_idct_2D_float(int32_t in[64], uint8_t *out, uint32_t outstride);
-void pjpeg_idct_2D_u32(int32_t in[64], uint8_t *out, uint32_t outstride);
-void pjpeg_idct_2D_nanojpeg(int32_t in[64], uint8_t *out, uint32_t outstride);
+void IRAM_ATTR pjpeg_idct_2D_float(int32_t in[64], uint8_t *out, uint32_t outstride);
+void IRAM_ATTR pjpeg_idct_2D_u32(int32_t in[64], uint8_t *out, uint32_t outstride);
+void IRAM_ATTR pjpeg_idct_2D_nanojpeg(int32_t in[64], uint8_t *out, uint32_t outstride);
 
 struct pjpeg_huffman_code
 {
@@ -141,7 +141,7 @@ static uint8_t mjpeg_dht[] = { // header
     0xF9,0xFA
 };
 
-static inline uint8_t max_u8(uint8_t a, uint8_t b)
+static inline uint8_t IRAM_ATTR max_u8(uint8_t a, uint8_t b)
 {
     return a > b ? a : b;
 }
@@ -172,7 +172,7 @@ struct bit_decoder
 };
 
 // ensure that at least 'nbits' of data is available in the bit decoder.
-static inline void bd_ensure(struct bit_decoder *bd, int nbits)
+static inline void IRAM_ATTR bd_ensure(struct bit_decoder *bd, int nbits)
 {
     while (bd->nbits_avail < nbits) {
 
@@ -199,14 +199,14 @@ static inline void bd_ensure(struct bit_decoder *bd, int nbits)
     }
 }
 
-static inline uint32_t bd_peek_bits(struct bit_decoder *bd, int nbits)
+static inline uint32_t IRAM_ATTR bd_peek_bits(struct bit_decoder *bd, int nbits)
 {
     bd_ensure(bd, nbits);
 
     return (bd->bits >> (bd->nbits_avail - nbits)) & ((1 << nbits) - 1);
 }
 
-static inline uint32_t bd_consume_bits(struct bit_decoder *bd, int nbits)
+static inline uint32_t IRAM_ATTR bd_consume_bits(struct bit_decoder *bd, int nbits)
 {
     assert(nbits < 32);
 
@@ -220,30 +220,30 @@ static inline uint32_t bd_consume_bits(struct bit_decoder *bd, int nbits)
 }
 
 // discard without regard for byte stuffing!
-static inline void bd_discard_bytes(struct bit_decoder *bd, int nbytes)
+static inline void IRAM_ATTR bd_discard_bytes(struct bit_decoder *bd, int nbytes)
 {
     assert(bd->nbits_avail == 0);
     bd->inpos += nbytes;
 }
 
-static inline int bd_has_more(struct bit_decoder *bd)
+static inline int IRAM_ATTR bd_has_more(struct bit_decoder *bd)
 {
     return bd->nbits_avail > 0 || bd->inpos < bd->inlen;
 }
 
 // throw away up to 7 bits of data so that the next data returned
 // began on a byte boundary.
-static inline void bd_discard_to_byte_boundary(struct bit_decoder *bd)
+static inline void IRAM_ATTR bd_discard_to_byte_boundary(struct bit_decoder *bd)
 {
     bd->nbits_avail -= (bd->nbits_avail & 7);
 }
 
-static inline uint32_t bd_get_offset(struct bit_decoder *bd)
+static inline uint32_t IRAM_ATTR bd_get_offset(struct bit_decoder *bd)
 {
     return bd->inpos - bd->nbits_avail / 8;
 }
 
-static int pjpeg_decode_buffer(struct pjpeg_decode_state *pjd)
+static int IRAM_ATTR pjpeg_decode_buffer(struct pjpeg_decode_state *pjd)
 {
     // XXX TODO Include sanity check that this is actually a JPG
 
@@ -686,7 +686,7 @@ static int pjpeg_decode_buffer(struct pjpeg_decode_state *pjd)
     return PJPEG_OKAY;
 }
 
-void pjpeg_destroy(pjpeg_t *pj)
+void IRAM_ATTR pjpeg_destroy(pjpeg_t *pj)
 {
     if (!pj)
         return;
@@ -700,7 +700,7 @@ void pjpeg_destroy(pjpeg_t *pj)
 
 
 // just grab the first component.
-image_u8_t *pjpeg_to_u8_baseline(pjpeg_t *pj)
+image_u8_t IRAM_ATTR *pjpeg_to_u8_baseline(pjpeg_t *pj)
 {
     assert(pj->ncomponents > 0);
 
@@ -715,7 +715,7 @@ image_u8_t *pjpeg_to_u8_baseline(pjpeg_t *pj)
     return im;
 }
 
-static inline uint8_t clampd(float v)
+static inline uint8_t IRAM_ATTR clampd(float v)
 {
     if (v < 0)
         return 0;
@@ -725,7 +725,7 @@ static inline uint8_t clampd(float v)
     return (uint8_t) v;
 }
 
-static inline uint8_t clamp_u8(int32_t v)
+static inline uint8_t IRAM_ATTR clamp_u8(int32_t v)
 {
     if (v < 0)
         return 0;
@@ -735,7 +735,7 @@ static inline uint8_t clamp_u8(int32_t v)
 }
 
 // color conversion formulas taken from JFIF spec v 1.02
-image_u8x3_t *pjpeg_to_u8x3_baseline(pjpeg_t *pj)
+image_u8x3_t IRAM_ATTR *pjpeg_to_u8x3_baseline(pjpeg_t *pj)
 {
     assert(pj->ncomponents == 3);
 
@@ -822,7 +822,7 @@ image_u8x3_t *pjpeg_to_u8x3_baseline(pjpeg_t *pj)
 
 ///////////////////////////////////////////////////////////////////
 // returns NULL if file loading fails.
-pjpeg_t *pjpeg_create_from_file(const char *path, uint32_t flags, int *error)
+pjpeg_t IRAM_ATTR *pjpeg_create_from_file(const char *path, uint32_t flags, int *error)
 {
     FILE *f = fopen(path, "rb");
     if (f == NULL)
@@ -854,7 +854,7 @@ pjpeg_t *pjpeg_create_from_file(const char *path, uint32_t flags, int *error)
     return pj;
 }
 
-pjpeg_t *pjpeg_create_from_buffer(uint8_t *buf, int buflen, uint32_t flags, int *error)
+pjpeg_t IRAM_ATTR *pjpeg_create_from_buffer(uint8_t *buf, int buflen, uint32_t flags, int *error)
 {
     struct pjpeg_decode_state pjd;
     memset(&pjd, 0, sizeof(pjd));

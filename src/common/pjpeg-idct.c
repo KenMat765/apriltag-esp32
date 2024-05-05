@@ -29,6 +29,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <math.h>
 #include <stdint.h>
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 // 8 bits of fixed-point output
 //
 // This implementation has a worst-case complexity of 22 multiplies
@@ -39,7 +47,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 //
 // The output is scaled by a factor of 256 (due to our fixed-point
 // integer arithmetic)..
-static inline void idct_1D_u32(int32_t *in, int instride, int32_t *out, int outstride)
+static inline void IRAM_ATTR idct_1D_u32(int32_t *in, int instride, int32_t *out, int outstride)
 {
     for (int x = 0; x < 8; x++)
         out[x*outstride] = 0;
@@ -173,7 +181,7 @@ static inline void idct_1D_u32(int32_t *in, int instride, int32_t *out, int outs
     }
 }
 
-void pjpeg_idct_2D_u32(int32_t in[64], uint8_t *out, uint32_t outstride)
+void IRAM_ATTR pjpeg_idct_2D_u32(int32_t in[64], uint8_t *out, uint32_t outstride)
 {
     int32_t tmp[64];
 
@@ -216,7 +224,7 @@ void pjpeg_idct_2D_u32(int32_t in[64], uint8_t *out, uint32_t outstride)
 
 ///////////////////////////////////////////////////////
 // Below: a "as straight-forward as I can make" implementation.
-static inline void idct_1D_float(float *in, int instride, float *out, int outstride)
+static inline void IRAM_ATTR idct_1D_float(float *in, int instride, float *out, int outstride)
 {
     for (int x = 0; x < 8; x++)
         out[x*outstride] = 0;
@@ -235,7 +243,7 @@ static inline void idct_1D_float(float *in, int instride, float *out, int outstr
     }
 }
 
-void pjpeg_idct_2D_float(int32_t in[64], uint8_t *out, uint32_t outstride)
+void IRAM_ATTR pjpeg_idct_2D_float(int32_t in[64], uint8_t *out, uint32_t outstride)
 {
     float din[64], dout[64];
     for (int i = 0; i < 64; i++)
@@ -269,7 +277,7 @@ void pjpeg_idct_2D_float(int32_t in[64], uint8_t *out, uint32_t outstride)
 }
 
 //////////////////////////////////////////////
-static inline unsigned char njClip(const int x) {
+static inline unsigned char IRAM_ATTR njClip(const int x) {
     return (x < 0) ? 0 : ((x > 0xFF) ? 0xFF : (unsigned char) x);
 }
 
@@ -280,7 +288,7 @@ static inline unsigned char njClip(const int x) {
 #define W6 1108
 #define W7 565
 
-static inline void njRowIDCT(int* blk) {
+static inline void IRAM_ATTR njRowIDCT(int* blk) {
     int x0, x1, x2, x3, x4, x5, x6, x7, x8;
     if (!((x1 = blk[4] << 11)
         | (x2 = blk[6])
@@ -325,7 +333,7 @@ static inline void njRowIDCT(int* blk) {
     blk[7] = (x7 - x1) >> 8;
 }
 
-static inline void njColIDCT(const int* blk, unsigned char *out, int stride) {
+static inline void IRAM_ATTR njColIDCT(const int* blk, unsigned char *out, int stride) {
     int x0, x1, x2, x3, x4, x5, x6, x7, x8;
     if (!((x1 = blk[8*4] << 8)
         | (x2 = blk[8*6])
@@ -374,7 +382,7 @@ static inline void njColIDCT(const int* blk, unsigned char *out, int stride) {
     *out = njClip(((x7 - x1) >> 14) + 128);
 }
 
-void pjpeg_idct_2D_nanojpeg(int32_t in[64], uint8_t *out, uint32_t outstride)
+void IRAM_ATTR pjpeg_idct_2D_nanojpeg(int32_t in[64], uint8_t *out, uint32_t outstride)
 {
     int coef;
 

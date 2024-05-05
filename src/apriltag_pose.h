@@ -8,6 +8,14 @@ extern "C" {
 #include "apriltag.h"
 #include "common/matd.h"
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 typedef struct {
     apriltag_detection_t* det;
     float tagsize; // In meters.
@@ -31,7 +39,7 @@ typedef struct {
  * Estimate pose of the tag using the homography method described in [1].
  * @outparam pose
  */
-void estimate_pose_for_tag_homography(
+void IRAM_ATTR estimate_pose_for_tag_homography(
         apriltag_detection_info_t* info,
         apriltag_pose_t* pose);
 
@@ -57,7 +65,7 @@ void estimate_pose_for_tag_homography(
  *
  * @outparam err1, pose1, err2, pose2
  */
-void estimate_tag_pose_orthogonal_iteration(
+void IRAM_ATTR estimate_tag_pose_orthogonal_iteration(
         apriltag_detection_info_t* info,
         float* err1,
         apriltag_pose_t* pose1,
@@ -72,7 +80,7 @@ void estimate_tag_pose_orthogonal_iteration(
  * @outparam pose 
  * @return Object-space error of returned pose.
  */
-float estimate_tag_pose(apriltag_detection_info_t* info, apriltag_pose_t* pose);
+float IRAM_ATTR estimate_tag_pose(apriltag_detection_info_t* info, apriltag_pose_t* pose);
 
 #ifdef __cplusplus
 }

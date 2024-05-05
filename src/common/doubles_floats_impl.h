@@ -33,6 +33,14 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "matd.h"
 #include "math_util.h"
 
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+#else
+#define IRAM_ATTR
+#endif
+
 // XXX Write unit tests for me!
 // XXX Rewrite matd_coords in terms of this.
 
@@ -65,7 +73,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 #define TFN(suffix) TRFN(TNAME, suffix)
 
 // if V is null, returns null.
-static inline TNAME *TFN(s_dup)(const TNAME *v, int len)
+static inline TNAME IRAM_ATTR *TFN(s_dup)(const TNAME *v, int len)
 {
     if (!v)
         return NULL;
@@ -75,14 +83,14 @@ static inline TNAME *TFN(s_dup)(const TNAME *v, int len)
     return r;
 }
 
-static inline void TFN(s_print)(const TNAME *a, int len, const char *fmt)
+static inline void IRAM_ATTR TFN(s_print)(const TNAME *a, int len, const char *fmt)
 {
     for (int i = 0; i < len; i++)
         printf(fmt, a[i]);
     printf("\n");
 }
 
-static inline void TFN(s_print_mat)(const TNAME *a, int nrows, int ncols, const char *fmt)
+static inline void IRAM_ATTR TFN(s_print_mat)(const TNAME *a, int nrows, int ncols, const char *fmt)
 {
     for (int i = 0; i < nrows * ncols; i++) {
         printf(fmt, a[i]);
@@ -91,7 +99,7 @@ static inline void TFN(s_print_mat)(const TNAME *a, int nrows, int ncols, const 
     }
 }
 
-static inline void TFN(s_print_mat44)(const TNAME *a, const char *fmt)
+static inline void IRAM_ATTR TFN(s_print_mat44)(const TNAME *a, const char *fmt)
 {
     for (int i = 0; i < 4 * 4; i++) {
         printf(fmt, a[i]);
@@ -100,25 +108,25 @@ static inline void TFN(s_print_mat44)(const TNAME *a, const char *fmt)
     }
 }
 
-static inline void TFN(s_add)(const TNAME *a, const TNAME *b, int len, TNAME *r)
+static inline void IRAM_ATTR TFN(s_add)(const TNAME *a, const TNAME *b, int len, TNAME *r)
 {
     for (int i = 0; i < len; i++)
         r[i] = a[i] + b[i];
 }
 
-static inline void TFN(s_subtract)(const TNAME *a, const TNAME *b, int len, TNAME *r)
+static inline void IRAM_ATTR TFN(s_subtract)(const TNAME *a, const TNAME *b, int len, TNAME *r)
 {
     for (int i = 0; i < len; i++)
         r[i] = a[i] - b[i];
 }
 
-static inline void TFN(s_scale)(TNAME s, const TNAME *v, int len, TNAME *r)
+static inline void IRAM_ATTR TFN(s_scale)(TNAME s, const TNAME *v, int len, TNAME *r)
 {
     for (int i = 0; i < len; i++)
         r[i] = s * v[i];
 }
 
-static inline TNAME TFN(s_dot)(const TNAME *a, const TNAME *b, int len)
+static inline TNAME IRAM_ATTR TFN(s_dot)(const TNAME *a, const TNAME *b, int len)
 {
     TNAME acc = 0;
     for (int i = 0; i < len; i++)
@@ -126,7 +134,7 @@ static inline TNAME TFN(s_dot)(const TNAME *a, const TNAME *b, int len)
     return acc;
 }
 
-static inline TNAME TFN(s_distance)(const TNAME *a, const TNAME *b, int len)
+static inline TNAME IRAM_ATTR TFN(s_distance)(const TNAME *a, const TNAME *b, int len)
 {
     TNAME acc = 0;
     for (int i = 0; i < len; i++)
@@ -134,7 +142,7 @@ static inline TNAME TFN(s_distance)(const TNAME *a, const TNAME *b, int len)
     return (TNAME)sqrt(acc);
 }
 
-static inline TNAME TFN(s_squared_distance)(const TNAME *a, const TNAME *b, int len)
+static inline TNAME IRAM_ATTR TFN(s_squared_distance)(const TNAME *a, const TNAME *b, int len)
 {
     TNAME acc = 0;
     for (int i = 0; i < len; i++)
@@ -142,7 +150,7 @@ static inline TNAME TFN(s_squared_distance)(const TNAME *a, const TNAME *b, int 
     return acc;
 }
 
-static inline TNAME TFN(s_squared_magnitude)(const TNAME *v, int len)
+static inline TNAME IRAM_ATTR TFN(s_squared_magnitude)(const TNAME *v, int len)
 {
     TNAME acc = 0;
     for (int i = 0; i < len; i++)
@@ -150,7 +158,7 @@ static inline TNAME TFN(s_squared_magnitude)(const TNAME *v, int len)
     return acc;
 }
 
-static inline TNAME TFN(s_magnitude)(const TNAME *v, int len)
+static inline TNAME IRAM_ATTR TFN(s_magnitude)(const TNAME *v, int len)
 {
     TNAME acc = 0;
     for (int i = 0; i < len; i++)
@@ -158,27 +166,27 @@ static inline TNAME TFN(s_magnitude)(const TNAME *v, int len)
     return (TNAME)sqrt(acc);
 }
 
-static inline void TFN(s_normalize)(const TNAME *v, int len, TNAME *r)
+static inline void IRAM_ATTR TFN(s_normalize)(const TNAME *v, int len, TNAME *r)
 {
     TNAME mag = TFN(s_magnitude)(v, len);
     for (int i = 0; i < len; i++)
         r[i] = v[i] / mag;
 }
 
-static inline void TFN(s_normalize_self)(TNAME *v, int len)
+static inline void IRAM_ATTR TFN(s_normalize_self)(TNAME *v, int len)
 {
     TNAME mag = TFN(s_magnitude)(v, len);
     for (int i = 0; i < len; i++)
         v[i] /= mag;
 }
 
-static inline void TFN(s_scale_self)(TNAME *v, int len, float scale)
+static inline void IRAM_ATTR TFN(s_scale_self)(TNAME *v, int len, float scale)
 {
     for (int i = 0; i < len; i++)
         v[i] = (TNAME)(v[i] * scale);
 }
 
-static inline void TFN(s_quat_rotate)(const TNAME q[4], const TNAME v[3], TNAME r[3])
+static inline void IRAM_ATTR TFN(s_quat_rotate)(const TNAME q[4], const TNAME v[3], TNAME r[3])
 {
     TNAME t2, t3, t4, t5, t6, t7, t8, t9, t10;
 
@@ -197,7 +205,7 @@ static inline void TFN(s_quat_rotate)(const TNAME q[4], const TNAME v[3], TNAME 
     r[2] = 2*((t7-t3)*v[0]  + (t2+t9)*v[1]  + (t5+t8)*v[2]) + v[2];
 }
 
-static inline void TFN(s_quat_multiply)(const TNAME a[4], const TNAME b[4], TNAME r[4])
+static inline void IRAM_ATTR TFN(s_quat_multiply)(const TNAME a[4], const TNAME b[4], TNAME r[4])
 {
     r[0] = a[0]*b[0] - a[1]*b[1] - a[2]*b[2] - a[3]*b[3];
     r[1] = a[0]*b[1] + a[1]*b[0] + a[2]*b[3] - a[3]*b[2];
@@ -205,7 +213,7 @@ static inline void TFN(s_quat_multiply)(const TNAME a[4], const TNAME b[4], TNAM
     r[3] = a[0]*b[3] + a[1]*b[2] - a[2]*b[1] + a[3]*b[0];
 }
 
-static inline void TFN(s_quat_inverse)(const TNAME q[4], TNAME r[4])
+static inline void IRAM_ATTR TFN(s_quat_inverse)(const TNAME q[4], TNAME r[4])
 {
     TNAME mag = TFN(s_magnitude)(q, 4);
     r[0] = q[0]/mag;
@@ -214,17 +222,17 @@ static inline void TFN(s_quat_inverse)(const TNAME q[4], TNAME r[4])
     r[3] = -q[3]/mag;
 }
 
-static inline void TFN(s_copy)(const TNAME *src, TNAME *dst, int n)
+static inline void IRAM_ATTR TFN(s_copy)(const TNAME *src, TNAME *dst, int n)
 {
     memcpy(dst, src, n * sizeof(TNAME));
 }
 
-static inline void TFN(s_xyt_copy)(const TNAME xyt[3], TNAME r[3])
+static inline void IRAM_ATTR TFN(s_xyt_copy)(const TNAME xyt[3], TNAME r[3])
 {
     TFN(s_copy)(xyt, r, 3);
 }
 
-static inline void TFN(s_xyt_to_mat44)(const TNAME xyt[3], TNAME r[16])
+static inline void IRAM_ATTR TFN(s_xyt_to_mat44)(const TNAME xyt[3], TNAME r[16])
 {
     TNAME s = (TNAME)sin(xyt[2]), c = (TNAME)cos(xyt[2]);
     memset(r, 0, sizeof(TNAME)*16);
@@ -238,21 +246,21 @@ static inline void TFN(s_xyt_to_mat44)(const TNAME xyt[3], TNAME r[16])
     r[15] = 1;
 }
 
-static inline void TFN(s_xyt_transform_xy)(const TNAME xyt[3], const TNAME xy[2], TNAME r[2])
+static inline void IRAM_ATTR TFN(s_xyt_transform_xy)(const TNAME xyt[3], const TNAME xy[2], TNAME r[2])
 {
     TNAME s = (TNAME)sin(xyt[2]), c = (TNAME)cos(xyt[2]);
     r[0] = c*xy[0] - s*xy[1] + xyt[0];
     r[1] = s*xy[0] + c*xy[1] + xyt[1];
 }
 
-static inline void TFN(s_mat_transform_xyz)(const TNAME M[16], const TNAME xyz[3], TNAME r[3])
+static inline void IRAM_ATTR TFN(s_mat_transform_xyz)(const TNAME M[16], const TNAME xyz[3], TNAME r[3])
 {
     r[0] = M[0]*xyz[0] + M[1]*xyz[1] + M[2]*xyz[2]  + M[3];
     r[1] = M[4]*xyz[0] + M[5]*xyz[1] + M[6]*xyz[2]  + M[7];
     r[2] = M[8]*xyz[0] + M[9]*xyz[1] + M[10]*xyz[2] + M[11];
 }
 
-static inline void TFN(s_quat_to_angleaxis)(const TNAME _q[4], TNAME r[4])
+static inline void IRAM_ATTR TFN(s_quat_to_angleaxis)(const TNAME _q[4], TNAME r[4])
 {
     TNAME q[4];
     TFN(s_normalize)(_q, 4, q);
@@ -272,7 +280,7 @@ static inline void TFN(s_quat_to_angleaxis)(const TNAME _q[4], TNAME r[4])
     }
 }
 
-static inline void TFN(s_angleaxis_to_quat)(const TNAME aa[4], TNAME q[4])
+static inline void IRAM_ATTR TFN(s_angleaxis_to_quat)(const TNAME aa[4], TNAME q[4])
 {
     TNAME rad = aa[0];
     q[0] = (TNAME)cos(rad / 2.0);
@@ -286,7 +294,7 @@ static inline void TFN(s_angleaxis_to_quat)(const TNAME aa[4], TNAME q[4])
     q[3] = s * v[2];
 }
 
-static inline void TFN(s_quat_to_mat44)(const TNAME q[4], TNAME r[16])
+static inline void IRAM_ATTR TFN(s_quat_to_mat44)(const TNAME q[4], TNAME r[16])
 {
     TNAME w = q[0], x = q[1], y = q[2], z = q[3];
 
@@ -317,7 +325,7 @@ static inline void TFN(s_quat_to_mat44)(const TNAME q[4], TNAME r[16])
      v3   0 -v1
     -v2  v1   0]
  */
-static inline void TFN(s_cross_matrix)(const TNAME v[3], TNAME V[9])
+static inline void IRAM_ATTR TFN(s_cross_matrix)(const TNAME v[3], TNAME V[9])
 {
     V[0] = 0;
     V[1] = -v[2];
@@ -330,7 +338,7 @@ static inline void TFN(s_cross_matrix)(const TNAME v[3], TNAME V[9])
     V[8] = 0;
 }
 
-static inline void TFN(s_angleaxis_to_mat44)(const TNAME aa[4], TNAME r[16])
+static inline void IRAM_ATTR TFN(s_angleaxis_to_mat44)(const TNAME aa[4], TNAME r[16])
 {
     TNAME q[4];
 
@@ -338,7 +346,7 @@ static inline void TFN(s_angleaxis_to_mat44)(const TNAME aa[4], TNAME r[16])
     TFN(s_quat_to_mat44)(q, r);
 }
 
-static inline void TFN(s_quat_xyz_to_mat44)(const TNAME q[4], const TNAME xyz[3], TNAME r[16])
+static inline void IRAM_ATTR TFN(s_quat_xyz_to_mat44)(const TNAME q[4], const TNAME xyz[3], TNAME r[16])
 {
     TFN(s_quat_to_mat44)(q, r);
 
@@ -349,7 +357,7 @@ static inline void TFN(s_quat_xyz_to_mat44)(const TNAME q[4], const TNAME xyz[3]
     }
 }
 
-static inline void TFN(s_rpy_to_quat)(const TNAME rpy[3], TNAME quat[4])
+static inline void IRAM_ATTR TFN(s_rpy_to_quat)(const TNAME rpy[3], TNAME quat[4])
 {
     TNAME roll = rpy[0], pitch = rpy[1], yaw = rpy[2];
 
@@ -373,7 +381,7 @@ static inline void TFN(s_rpy_to_quat)(const TNAME rpy[3], TNAME quat[4])
 
 // Reference: "A tutorial on SE(3) transformation parameterizations and
 // on-manifold optimization" by Jose-Luis Blanco
-static inline void TFN(s_quat_to_rpy)(const TNAME q[4], TNAME rpy[3])
+static inline void IRAM_ATTR TFN(s_quat_to_rpy)(const TNAME q[4], TNAME rpy[3])
 {
     const TNAME qr = q[0];
     const TNAME qx = q[1];
@@ -408,7 +416,7 @@ static inline void TFN(s_quat_to_rpy)(const TNAME q[4], TNAME rpy[3])
     }
 }
 
-static inline void TFN(s_rpy_to_mat44)(const TNAME rpy[3], TNAME M[16])
+static inline void IRAM_ATTR TFN(s_rpy_to_mat44)(const TNAME rpy[3], TNAME M[16])
 {
     TNAME q[4];
     TFN(s_rpy_to_quat)(rpy, q);
@@ -416,7 +424,7 @@ static inline void TFN(s_rpy_to_mat44)(const TNAME rpy[3], TNAME M[16])
 }
 
 
-static inline void TFN(s_xyzrpy_to_mat44)(const TNAME xyzrpy[6], TNAME M[16])
+static inline void IRAM_ATTR TFN(s_xyzrpy_to_mat44)(const TNAME xyzrpy[6], TNAME M[16])
 {
     TFN(s_rpy_to_mat44)(&xyzrpy[3], M);
     M[3] = xyzrpy[0];
@@ -424,20 +432,20 @@ static inline void TFN(s_xyzrpy_to_mat44)(const TNAME xyzrpy[6], TNAME M[16])
     M[11] = xyzrpy[2];
 }
 
-static inline void TFN(s_mat44_transform_xyz)(const TNAME M[16], const TNAME in[3], TNAME out[3])
+static inline void IRAM_ATTR TFN(s_mat44_transform_xyz)(const TNAME M[16], const TNAME in[3], TNAME out[3])
 {
     for (int i = 0; i < 3; i++)
         out[i] = M[4*i + 0]*in[0] + M[4*i + 1]*in[1] + M[4*i + 2]*in[2] + M[4*i + 3];
 }
 
 // out = (upper 3x3 of M) * in
-static inline void TFN(s_mat44_rotate_vector)(const TNAME M[16], const TNAME in[3], TNAME out[3])
+static inline void IRAM_ATTR TFN(s_mat44_rotate_vector)(const TNAME M[16], const TNAME in[3], TNAME out[3])
 {
     for (int i = 0; i < 3; i++)
         out[i] = M[4*i + 0]*in[0] + M[4*i + 1]*in[1] + M[4*i + 2]*in[2];
 }
 
-static inline void TFN(s_mat44_to_xyt)(const TNAME M[16], TNAME xyt[3])
+static inline void IRAM_ATTR TFN(s_mat44_to_xyt)(const TNAME M[16], TNAME xyt[3])
 {
     // c -s
     // s  c
@@ -446,14 +454,14 @@ static inline void TFN(s_mat44_to_xyt)(const TNAME M[16], TNAME xyt[3])
     xyt[2] = (TNAME)atan2(M[4], M[0]);
 }
 
-static inline void TFN(s_mat_to_xyz)(const TNAME M[16], TNAME xyz[3])
+static inline void IRAM_ATTR TFN(s_mat_to_xyz)(const TNAME M[16], TNAME xyz[3])
 {
     xyz[0] = M[3];
     xyz[1] = M[7];
     xyz[2] = M[11];
 }
 
-static inline void TFN(s_mat_to_quat)(const TNAME M[16], TNAME q[4])
+static inline void IRAM_ATTR TFN(s_mat_to_quat)(const TNAME M[16], TNAME q[4])
 {
     float T = M[0] + M[5] + M[10] + 1.0;
     float S;
@@ -487,7 +495,7 @@ static inline void TFN(s_mat_to_quat)(const TNAME M[16], TNAME q[4])
     TFN(s_normalize)(q, 4, q);
 }
 
-static inline void TFN(s_quat_xyz_to_xyt)(const TNAME q[4], const TNAME xyz[3], TNAME xyt[3])
+static inline void IRAM_ATTR TFN(s_quat_xyz_to_xyt)(const TNAME q[4], const TNAME xyz[3], TNAME xyt[3])
 {
     TNAME M[16];
     TFN(s_quat_xyz_to_mat44)(q, xyz, M);
@@ -495,7 +503,7 @@ static inline void TFN(s_quat_xyz_to_xyt)(const TNAME q[4], const TNAME xyz[3], 
 }
 
 // xytr = xyta * xytb;
-static inline void TFN(s_xyt_mul)(const TNAME xyta[3], const TNAME xytb[3], TNAME xytr[3])
+static inline void IRAM_ATTR TFN(s_xyt_mul)(const TNAME xyta[3], const TNAME xytb[3], TNAME xytr[3])
 {
     TNAME xa = xyta[0], ya = xyta[1], ta = xyta[2];
     TNAME s = (TNAME)sin(ta), c = (TNAME)cos(ta);
@@ -505,14 +513,14 @@ static inline void TFN(s_xyt_mul)(const TNAME xyta[3], const TNAME xytb[3], TNAM
     xytr[2] = ta + xytb[2];
 }
 
-static inline void TFN(s_xytcov_copy)(const TNAME xyta[3], const TNAME Ca[9],
+static inline void IRAM_ATTR TFN(s_xytcov_copy)(const TNAME xyta[3], const TNAME Ca[9],
                                       TNAME xytr[3], TNAME Cr[9])
 {
     memcpy(xytr, xyta, 3 * sizeof(TNAME));
     memcpy(Cr, Ca, 9 * sizeof(TNAME));
 }
 
-static inline void TFN(s_xytcov_mul)(const TNAME xyta[3], const TNAME Ca[9],
+static inline void IRAM_ATTR TFN(s_xytcov_mul)(const TNAME xyta[3], const TNAME Ca[9],
                                       const TNAME xytb[3], const TNAME Cb[9],
                                       TNAME xytr[3], TNAME Cr[9])
 {
@@ -566,7 +574,7 @@ static inline void TFN(s_xytcov_mul)(const TNAME xyta[3], const TNAME Ca[9],
 }
 
 
-static inline void TFN(s_xyt_inv)(const TNAME xyta[3], TNAME xytr[3])
+static inline void IRAM_ATTR TFN(s_xyt_inv)(const TNAME xyta[3], TNAME xytr[3])
 {
     TNAME s = (TNAME)sin(xyta[2]), c = (TNAME)cos(xyta[2]);
     xytr[0] = -s*xyta[1] - c*xyta[0];
@@ -574,7 +582,7 @@ static inline void TFN(s_xyt_inv)(const TNAME xyta[3], TNAME xytr[3])
     xytr[2] = -xyta[2];
 }
 
-static inline void TFN(s_xytcov_inv)(const TNAME xyta[3], const TNAME Ca[9],
+static inline void IRAM_ATTR TFN(s_xytcov_inv)(const TNAME xyta[3], const TNAME Ca[9],
                                       TNAME xytr[3], TNAME Cr[9])
 {
     TNAME x = xyta[0], y = xyta[1], theta = xyta[2];
@@ -616,7 +624,7 @@ static inline void TFN(s_xytcov_inv)(const TNAME xyta[3], const TNAME Ca[9],
 }
 
 // xytr = inv(xyta) * xytb
-static inline void TFN(s_xyt_inv_mul)(const TNAME xyta[3], const TNAME xytb[3], TNAME xytr[3])
+static inline void IRAM_ATTR TFN(s_xyt_inv_mul)(const TNAME xyta[3], const TNAME xytb[3], TNAME xytr[3])
 {
     TNAME theta = xyta[2];
     TNAME ca = (TNAME)cos(theta);
@@ -629,7 +637,7 @@ static inline void TFN(s_xyt_inv_mul)(const TNAME xyta[3], const TNAME xytb[3], 
     xytr[2]= xytb[2] - xyta[2];
 }
 
-static inline void TFN(s_mat_add)(const TNAME *A, int Arows, int Acols,
+static inline void IRAM_ATTR TFN(s_mat_add)(const TNAME *A, int Arows, int Acols,
                                    const TNAME *B, int Brows, int Bcols,
                                    TNAME *R, int Rrows, int Rcols)
 {
@@ -645,7 +653,7 @@ static inline void TFN(s_mat_add)(const TNAME *A, int Arows, int Acols,
 
 // matrix should be in row-major order, allocated in a single packed
 // array. (This is compatible with matd.)
-static inline void TFN(s_mat_AB)(const TNAME *A, int Arows, int Acols,
+static inline void IRAM_ATTR TFN(s_mat_AB)(const TNAME *A, int Arows, int Acols,
                                   const TNAME *B, int Brows, int Bcols,
                                   TNAME *R, int Rrows, int Rcols)
 {
@@ -665,7 +673,7 @@ static inline void TFN(s_mat_AB)(const TNAME *A, int Arows, int Acols,
 
 // matrix should be in row-major order, allocated in a single packed
 // array. (This is compatible with matd.)
-static inline void TFN(s_mat_ABt)(const TNAME *A, int Arows, int Acols,
+static inline void IRAM_ATTR TFN(s_mat_ABt)(const TNAME *A, int Arows, int Acols,
                                   const TNAME *B, int Brows, int Bcols,
                                   TNAME *R, int Rrows, int Rcols)
 {
@@ -683,7 +691,7 @@ static inline void TFN(s_mat_ABt)(const TNAME *A, int Arows, int Acols,
     }
 }
 
-static inline void TFN(s_mat_ABC)(const TNAME *A, int Arows, int Acols,
+static inline void IRAM_ATTR TFN(s_mat_ABC)(const TNAME *A, int Arows, int Acols,
                                   const TNAME *B, int Brows, int Bcols,
                                   const TNAME *C, int Crows, int Ccols,
                                   TNAME *R, int Rrows, int Rcols)
@@ -695,7 +703,7 @@ static inline void TFN(s_mat_ABC)(const TNAME *A, int Arows, int Acols,
     free(tmp);
 }
 
-static inline void TFN(s_mat_Ab)(const TNAME *A, int Arows, int Acols,
+static inline void IRAM_ATTR TFN(s_mat_Ab)(const TNAME *A, int Arows, int Acols,
                                   const TNAME *B, int Blength,
                                   TNAME *R, int Rlength)
 {
@@ -710,7 +718,7 @@ static inline void TFN(s_mat_Ab)(const TNAME *A, int Arows, int Acols,
     }
 }
 
-static inline void TFN(s_mat_AtB)(const TNAME *A, int Arows, int Acols,
+static inline void IRAM_ATTR TFN(s_mat_AtB)(const TNAME *A, int Arows, int Acols,
                                    const TNAME *B, int Brows, int Bcols,
                                    TNAME *R, int Rrows, int Rcols)
 {
@@ -728,7 +736,7 @@ static inline void TFN(s_mat_AtB)(const TNAME *A, int Arows, int Acols,
     }
 }
 
-static inline void TFN(s_quat_slerp)(const TNAME q0[4], const TNAME _q1[4], TNAME r[4], TNAME w)
+static inline void IRAM_ATTR TFN(s_quat_slerp)(const TNAME q0[4], const TNAME _q1[4], TNAME r[4], TNAME w)
 {
     TNAME dot = TFN(s_dot)(q0, _q1, 4);
 
@@ -763,7 +771,7 @@ static inline void TFN(s_quat_slerp)(const TNAME q0[4], const TNAME _q1[4], TNAM
     }
 }
 
-static inline void TFN(s_cross_product)(const TNAME v1[3], const TNAME v2[3], TNAME r[3])
+static inline void IRAM_ATTR TFN(s_cross_product)(const TNAME v1[3], const TNAME v2[3], TNAME r[3])
 {
     r[0] = v1[1]*v2[2] - v1[2]*v2[1];
     r[1] = v1[2]*v2[0] - v1[0]*v2[2];
@@ -771,7 +779,7 @@ static inline void TFN(s_cross_product)(const TNAME v1[3], const TNAME v2[3], TN
 }
 
 ////////////////////
-static inline void TFN(s_mat44_identity)(TNAME out[16])
+static inline void IRAM_ATTR TFN(s_mat44_identity)(TNAME out[16])
 {
     memset(out, 0, 16 * sizeof(TNAME));
     out[0] = 1;
@@ -780,7 +788,7 @@ static inline void TFN(s_mat44_identity)(TNAME out[16])
     out[15] = 1;
 }
 
-static inline void TFN(s_mat44_translate)(const TNAME txyz[3], TNAME out[16])
+static inline void IRAM_ATTR TFN(s_mat44_translate)(const TNAME txyz[3], TNAME out[16])
 {
     TFN(s_mat44_identity)(out);
 
@@ -788,7 +796,7 @@ static inline void TFN(s_mat44_translate)(const TNAME txyz[3], TNAME out[16])
         out[4*i + 3] += txyz[i];
 }
 
-static inline void TFN(s_mat44_scale)(const TNAME sxyz[3], TNAME out[16])
+static inline void IRAM_ATTR TFN(s_mat44_scale)(const TNAME sxyz[3], TNAME out[16])
 {
     TFN(s_mat44_identity)(out);
 
@@ -796,7 +804,7 @@ static inline void TFN(s_mat44_scale)(const TNAME sxyz[3], TNAME out[16])
         out[4*i + i] = sxyz[i];
 }
 
-static inline void TFN(s_mat44_rotate_z)(TNAME rad, TNAME out[16])
+static inline void IRAM_ATTR TFN(s_mat44_rotate_z)(TNAME rad, TNAME out[16])
 {
     TFN(s_mat44_identity)(out);
     TNAME s = (TNAME)sin(rad), c = (TNAME)cos(rad);
@@ -806,7 +814,7 @@ static inline void TFN(s_mat44_rotate_z)(TNAME rad, TNAME out[16])
     out[1*4 + 1] = c;
 }
 
-static inline void TFN(s_mat44_rotate_y)(TNAME rad, TNAME out[16])
+static inline void IRAM_ATTR TFN(s_mat44_rotate_y)(TNAME rad, TNAME out[16])
 {
     TFN(s_mat44_identity)(out);
     TNAME s = (TNAME)sin(rad), c = (TNAME)cos(rad);
@@ -816,7 +824,7 @@ static inline void TFN(s_mat44_rotate_y)(TNAME rad, TNAME out[16])
     out[2*4 + 2] = c;
 }
 
-static inline void TFN(s_mat44_rotate_x)(TNAME rad, TNAME out[16])
+static inline void IRAM_ATTR TFN(s_mat44_rotate_x)(TNAME rad, TNAME out[16])
 {
     TFN(s_mat44_identity)(out);
     TNAME s = (TNAME)sin(rad), c = (TNAME)cos(rad);
@@ -827,7 +835,7 @@ static inline void TFN(s_mat44_rotate_x)(TNAME rad, TNAME out[16])
 }
 
 // out = out * translate(txyz)
-static inline void TFN(s_mat44_translate_self)(const TNAME txyz[3], TNAME out[16])
+static inline void IRAM_ATTR TFN(s_mat44_translate_self)(const TNAME txyz[3], TNAME out[16])
 {
     TNAME tmp[16], prod[16];
     TFN(s_mat44_translate(txyz, tmp));
@@ -835,7 +843,7 @@ static inline void TFN(s_mat44_translate_self)(const TNAME txyz[3], TNAME out[16
     memcpy(out, prod, sizeof(TNAME)*16);
 }
 
-static inline void TFN(s_mat44_scale_self)(const TNAME sxyz[3], TNAME out[16])
+static inline void IRAM_ATTR TFN(s_mat44_scale_self)(const TNAME sxyz[3], TNAME out[16])
 {
     TNAME tmp[16], prod[16];
     TFN(s_mat44_scale(sxyz, tmp));
@@ -843,7 +851,7 @@ static inline void TFN(s_mat44_scale_self)(const TNAME sxyz[3], TNAME out[16])
     memcpy(out, prod, sizeof(TNAME)*16);
 }
 
-static inline void TFN(s_mat44_rotate_z_self)(TNAME rad, TNAME out[16])
+static inline void IRAM_ATTR TFN(s_mat44_rotate_z_self)(TNAME rad, TNAME out[16])
 {
     TNAME tmp[16], prod[16];
     TFN(s_mat44_rotate_z(rad, tmp));
@@ -852,7 +860,7 @@ static inline void TFN(s_mat44_rotate_z_self)(TNAME rad, TNAME out[16])
 }
 
 // out = inv(M)*in. Note: this assumes that mat44 is a rigid-body transformation.
-static inline void TFN(s_mat44_inv)(const TNAME M[16], TNAME out[16])
+static inline void IRAM_ATTR TFN(s_mat44_inv)(const TNAME M[16], TNAME out[16])
 {
 // NB: M = T*R,  inv(M) = inv(R) * inv(T)
 
@@ -881,7 +889,7 @@ static inline void TFN(s_mat44_inv)(const TNAME M[16], TNAME out[16])
 }
 
 // out = inv(M)*in
-static inline void TFN(s_mat44_inv_transform_xyz)(const TNAME M[16], const TNAME in[3], TNAME out[3])
+static inline void IRAM_ATTR TFN(s_mat44_inv_transform_xyz)(const TNAME M[16], const TNAME in[3], TNAME out[3])
 {
     TNAME T[16];
     TFN(s_mat44_inv)(M, T);
@@ -890,7 +898,7 @@ static inline void TFN(s_mat44_inv_transform_xyz)(const TNAME M[16], const TNAME
 }
 
 // out = (upper 3x3 of inv(M)) * in
-static inline void TFN(s_mat44_inv_rotate_vector)(const TNAME M[16], const TNAME in[3], TNAME out[3])
+static inline void IRAM_ATTR TFN(s_mat44_inv_rotate_vector)(const TNAME M[16], const TNAME in[3], TNAME out[3])
 {
     TNAME T[16];
     TFN(s_mat44_inv)(M, T);
@@ -898,7 +906,7 @@ static inline void TFN(s_mat44_inv_rotate_vector)(const TNAME M[16], const TNAME
     TFN(s_mat44_rotate_vector)(T, in, out);
 }
 
-static inline void TFN(s_elu_to_mat44)(const TNAME eye[3], const TNAME lookat[3], const TNAME _up[3],
+static inline void IRAM_ATTR TFN(s_elu_to_mat44)(const TNAME eye[3], const TNAME lookat[3], const TNAME _up[3],
                                        TNAME M[16])
 {
     TNAME f[3];
@@ -938,7 +946,7 @@ static inline void TFN(s_elu_to_mat44)(const TNAME eye[3], const TNAME lookat[3]
 
 // Computes the cholesky factorization of A, putting the lower
 // triangular matrix into R.
-static inline void TFN(s_mat33_chol)(const TNAME *A, int Arows, int Acols,
+static inline void IRAM_ATTR TFN(s_mat33_chol)(const TNAME *A, int Arows, int Acols,
                                      TNAME *R, int Brows, int Bcols)
 {
     assert(Arows == Brows);
@@ -967,7 +975,7 @@ static inline void TFN(s_mat33_chol)(const TNAME *A, int Arows, int Acols,
     R[5] = 0;
 }
 
-static inline void TFN(s_mat33_lower_tri_inv)(const TNAME *A, int Arows, int Acols,
+static inline void IRAM_ATTR TFN(s_mat33_lower_tri_inv)(const TNAME *A, int Arows, int Acols,
                                               TNAME *R, int Rrows, int Rcols)
 {
     // A[0]*R[0] = 1
@@ -990,7 +998,7 @@ static inline void TFN(s_mat33_lower_tri_inv)(const TNAME *A, int Arows, int Aco
 }
 
 
-static inline void TFN(s_mat33_sym_solve)(const TNAME *A, int Arows, int Acols,
+static inline void IRAM_ATTR TFN(s_mat33_sym_solve)(const TNAME *A, int Arows, int Acols,
                                           const TNAME *B, int Brows, int Bcols,
                                           TNAME *R, int Rrows, int Rcols)
 {
