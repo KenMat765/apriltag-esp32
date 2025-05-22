@@ -85,6 +85,11 @@ B3/B0 = tan(P-T)
 
 B2/B1 = tan(P+T)
  **/
+
+#ifndef IRAM_ATTR
+#include "esp_attr.h"
+#endif
+
 void IRAM_ATTR svd22(const float A[4], float U[4], float S[2], float V[4])
 {
     float A00 = A[0];
