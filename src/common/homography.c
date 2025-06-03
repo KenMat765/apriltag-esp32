@@ -405,8 +405,7 @@ matd_t IRAM_ATTR *homography_to_model_view(const matd_t *H, float F, float G, fl
 }
 
 // Only uses the upper 3x3 matrix.
-/*
-static void matrix_to_quat(const matd_t *R, float q[4])
+void matrix_to_quat(const matd_t *R, float q[4])
 {
     // see: "from quaternion to matrix and back"
 
@@ -458,7 +457,6 @@ static void matrix_to_quat(const matd_t *R, float q[4])
     for (int i = 0; i < 4; i++)
         q[i] *= norm;
 }
-*/
 
 // overwrites upper 3x3 area of matrix M. Doesn't touch any other elements of M.
 void IRAM_ATTR quat_to_matrix(const float q[4], matd_t *M)

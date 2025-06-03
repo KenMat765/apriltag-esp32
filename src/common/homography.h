@@ -186,6 +186,9 @@ matd_t IRAM_ATTR *homography_to_pose(const matd_t *H, float fx, float fy, float 
 
 matd_t IRAM_ATTR *homography_to_model_view(const matd_t *H, float F, float G, float A, float B);
 
+void matrix_to_quat(const matd_t *R, float q[4]);
+void IRAM_ATTR quat_to_matrix(const float q[4], matd_t *M);
+
 #ifdef __cplusplus
 }
 #endif
